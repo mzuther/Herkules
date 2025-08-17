@@ -198,6 +198,8 @@ def herkules_process(root_directory,
 def main_cli():
     if len(sys.argv) < 2:
         print()
+        print(f'version:   {__version__}')
+        print()
         print('HERKULES:  ME WANT EAT DIRECTORIES.  PLEASE SHOW PLACE.  '
               'THEN ME START EAT.')
         print()
