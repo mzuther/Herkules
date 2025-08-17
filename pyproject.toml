@@ -9,6 +9,9 @@ readme = "README.md"
 license = "BSD-3-Clause"
 license-files = ["LICENSE.md"]
 
+[project.scripts]
+herkules = "herkules.Herkules:main_cli"
+
 [dependency-groups]
 dev = [
     "flake8>=6.0.0,<7",
@@ -23,10 +26,6 @@ dev = [
 [build-system]
 requires = ["hatchling >= 1.27"]
 build-backend = "hatchling.build"
-
-[tool.uv.build-backend]
-module-root = "src"
-module-name = "herkules"
 
 [tool.hatch.version]
 path = "src/herkules/Herkules.py"

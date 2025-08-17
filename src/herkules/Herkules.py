@@ -195,7 +195,7 @@ def herkules_process(root_directory,
     return directories, files
 
 
-if __name__ == '__main__':
+def main_cli():
     if len(sys.argv) < 2:
         print()
         print('HERKULES:  ME WANT EAT DIRECTORIES.  PLEASE SHOW PLACE.  '
@@ -228,3 +228,7 @@ if __name__ == '__main__':
             selector=SELECTOR,
             modified_since=MODIFIED_SINCE):
         print(current_path_name)
+
+
+if __name__ == '__main__':
+    main_cli()
