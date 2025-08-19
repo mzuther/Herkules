@@ -44,9 +44,19 @@ or
 .\script\bootstrap.ps1
 ```
 
+For a very simple "no-options" experience, install from PyPI and execute the
+included script:
+
+```bash
+# bash
+pip install herkules
+herkules "./directory/"
+```
+
 ## Execution
 
-See [example.py](./example.py) for example code and an explanation of parameters.
+See [example_herkules.py](./example_herkules.py) for example code and an
+explanation of parameters.
 
 ## Code of conduct
 
