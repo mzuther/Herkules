@@ -22,9 +22,9 @@ license-files = ["LICENSE.md"]
 herkules = "herkules.Herkules:main_cli"
 
 [project.urls]
-Homepage = "https://github.com/mzuther/herkules"
-Repository = "https://github.com/mzuther/herkules.git"
-Changelog = "https://github.com/mzuther/herkules/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/mzuther/Herkules"
+Repository = "https://github.com/mzuther/Herkules.git"
+Changelog = "https://github.com/mzuther/Herkules/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
