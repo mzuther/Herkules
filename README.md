@@ -1,3 +1,7 @@
+![PyPI - Version](https://img.shields.io/pypi/v/herkules)
+![PyPI - License](https://img.shields.io/pypi/l/herkules)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/herkules)
+
 # Herkules
 
 _Crawl directories with style_
