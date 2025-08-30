@@ -9,22 +9,34 @@ import pytest
 class TestCommon:
     # adapted from https://stackoverflow.com/a/42327075
     @contextlib.contextmanager
-    def does_not_raise(self, exception):
+    def does_not_raise(
+        self,
+        exception,
+    ):
         try:
             yield
         except exception:
             # ruff: noqa: B904
             raise pytest.fail(f'raised unwanted exception {exception}')
 
-
-    def assert_herkules(self, root_path, expected_files, actual_paths,
-                        ignore_order=False):
+    def assert_herkules(
+        self,
+        root_path,
+        expected_files,
+        actual_paths,
+        ignore_order=False,
+    ):
         actual_files = []
         for file_path in actual_paths:
-            assert isinstance(file_path, pathlib.Path)
+            assert isinstance(
+                file_path,
+                pathlib.Path,
+            )
 
             file_path_relative = file_path.relative_to(root_path)
-            actual_files.append(str(file_path_relative))
+            actual_files.append(
+                str(file_path_relative),
+            )
 
         if ignore_order:
             expected_files = sorted(expected_files)
@@ -39,7 +51,8 @@ class TestCommon:
                 expected_files.splitlines(keepends=True),
                 actual_files.splitlines(keepends=True),
                 fromfile='EXPECTED',
-                tofile='ACTUAL')
+                tofile='ACTUAL',
+            )
 
             print('------------------------------------------------------')
             print()
