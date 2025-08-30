@@ -6,7 +6,6 @@ import pathlib
 
 from src.herkules.Herkules import herkules
 
-
 # %% Initialization
 # directory to be crawled (can also be a string)
 ROOT_DIRECTORY = pathlib.Path('.')
@@ -26,6 +25,10 @@ SELECTOR = {
     # optional: directories that should not be crawled (full name is matched)
     'excluded_directory_names': [
         '.git',
+        '.mypy_cache',
+        '.ruff_cache',
+        '.pytest_cache',
+        '.venv',
     ],
     # optional: file names that should be included in the result (glob)
     'excluded_file_names': [

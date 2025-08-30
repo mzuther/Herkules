@@ -10,12 +10,13 @@
 import datetime
 import os
 import pathlib
-import pytest
 import time
 
-from .common import TestCommon
+import pytest
+
 from src.herkules.Herkules import herkules
 
+from .common import TestCommon
 
 FIXTURE_DIR = pathlib.Path('tests') / 'beetle'
 

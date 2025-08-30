@@ -13,6 +13,7 @@ class TestCommon:
         try:
             yield
         except exception:
+            # ruff: noqa: B904
             raise pytest.fail(f'raised unwanted exception {exception}')
 
 
