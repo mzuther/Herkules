@@ -36,8 +36,7 @@ SELECTOR = {
     ],
     # optional: file names that should be excluded from the result (glob,
     # "*" by default)
-    'included_file_names': [
-    ],
+    'included_file_names': [],
 }
 
 # optional: only include directories and files with were modified at or past
@@ -48,10 +47,15 @@ MODIFIED_SINCE = datetime.datetime(2024, 8, 1, 8, 30, 0)
 # %% Crawl directory & display results
 # "herkules()" returns a list of "pathlib.Path" objects
 contents = herkules(
-    ROOT_DIRECTORY, DIRECTORIES_FIRST, INCLUDE_DIRECTORIES,
-    FOLLOW_SYMLINKS, SELECTOR, MODIFIED_SINCE)
+    ROOT_DIRECTORY,
+    DIRECTORIES_FIRST,
+    INCLUDE_DIRECTORIES,
+    FOLLOW_SYMLINKS,
+    SELECTOR,
+    MODIFIED_SINCE,
+)
 
 print()
 for entry in contents:
-    print(f'* { entry }')
+    print(f'* {entry}')
 print()

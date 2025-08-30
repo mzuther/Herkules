@@ -49,11 +49,13 @@ import sys
 __version__ = '1.0.0'
 
 
-def is_directory_included(current_path,
-                          dir_entry,
-                          follow_symlinks,
-                          selector,
-                          modified_since):
+def is_directory_included(
+    current_path,
+    dir_entry,
+    follow_symlinks,
+    selector,
+    modified_since,
+):
     if not dir_entry.is_dir(follow_symlinks=follow_symlinks):
         return False
 
@@ -61,14 +63,19 @@ def is_directory_included(current_path,
     if current_path.name in selector['excluded_directory_names']:
         return False
 
-    return has_been_modified(dir_entry, modified_since)
+    return has_been_modified(
+        dir_entry,
+        modified_since,
+    )
 
 
-def is_file_included(current_path,
-                     dir_entry,
-                     follow_symlinks,
-                     selector,
-                     modified_since):
+def is_file_included(
+    current_path,
+    dir_entry,
+    follow_symlinks,
+    selector,
+    modified_since,
+):
     if not dir_entry.is_file(follow_symlinks=follow_symlinks):
         return False
 
@@ -84,10 +91,16 @@ def is_file_included(current_path,
     else:
         return False
 
-    return has_been_modified(dir_entry, modified_since)
+    return has_been_modified(
+        dir_entry,
+        modified_since,
+    )
 
 
-def has_been_modified(dir_entry, modified_since):
+def has_been_modified(
+    dir_entry,
+    modified_since,
+):
     # "stat" is costly
     if not modified_since:
         return True
@@ -104,9 +117,11 @@ def has_been_modified(dir_entry, modified_since):
     return modification_time_in_seconds >= modified_since
 
 
-def herkules_prepare(root_directory,
-                     selector,
-                     modified_since):
+def herkules_prepare(
+    root_directory,
+    selector,
+    modified_since,
+):
     root_directory = pathlib.Path(root_directory)
 
     if not selector:
@@ -132,17 +147,26 @@ def herkules_prepare(root_directory,
     return (root_directory, selector, modified_since)
 
 
-def herkules(root_directory,
-             directories_first=True,
-             include_directories=False,
-             follow_symlinks=False,
-             selector=None,
-             modified_since=None):
+def herkules(
+    root_directory,
+    directories_first=True,
+    include_directories=False,
+    follow_symlinks=False,
+    selector=None,
+    modified_since=None,
+):
     root_directory, selector, modified_since = herkules_prepare(
-        root_directory, selector, modified_since)
+        root_directory,
+        selector,
+        modified_since,
+    )
 
     directories, files = herkules_process(
-        root_directory, follow_symlinks, selector, modified_since)
+        root_directory,
+        follow_symlinks,
+        selector,
+        modified_since,
+    )
 
     # sort results
     directories.sort()
@@ -156,9 +180,14 @@ def herkules(root_directory,
 
     # recurse
     for current_directory in directories:
-        deep_found_items = herkules(current_directory, directories_first,
-                                    include_directories, follow_symlinks,
-                                    selector, modified_since)
+        deep_found_items = herkules(
+            current_directory,
+            directories_first,
+            include_directories,
+            follow_symlinks,
+            selector,
+            modified_since,
+        )
 
         if include_directories:
             found_items.append(current_directory)
@@ -171,10 +200,12 @@ def herkules(root_directory,
     return found_items
 
 
-def herkules_process(root_directory,
-                     follow_symlinks,
-                     selector,
-                     modified_since):
+def herkules_process(
+    root_directory,
+    follow_symlinks,
+    selector,
+    modified_since,
+):
     directories = []
     files = []
 
@@ -184,12 +215,22 @@ def herkules_process(root_directory,
         current_path = root_directory / dir_entry.name
 
         # process directories
-        if is_directory_included(current_path, dir_entry, follow_symlinks,
-                                 selector, modified_since):
+        if is_directory_included(
+            current_path,
+            dir_entry,
+            follow_symlinks,
+            selector,
+            modified_since,
+        ):
             directories.append(current_path)
         # process files
-        elif is_file_included(current_path, dir_entry, follow_symlinks,
-                              selector, modified_since):
+        elif is_file_included(
+            current_path,
+            dir_entry,
+            follow_symlinks,
+            selector,
+            modified_since,
+        ):
             files.append(current_path)
 
     return directories, files
@@ -200,11 +241,14 @@ def main_cli():
         print()
         print(f'version:   {__version__}')
         print()
-        print('HERKULES:  ME WANT EAT DIRECTORIES.  PLEASE SHOW PLACE.  '
-              'THEN ME START EAT.')
+        print(
+            'HERKULES:  ME WANT EAT DIRECTORIES.  PLEASE SHOW PLACE.  '
+            'THEN ME START EAT.'
+        )
         print()
-        print('engineer:  please provide the root directory as first '
-              'parameter.')
+        print(
+            'engineer:  please provide the root directory as first parameter.'
+        )
         print()
 
         exit(1)
@@ -212,12 +256,9 @@ def main_cli():
     SOURCE_DIR = sys.argv[1]
 
     SELECTOR = {
-        'excluded_directory_names': [
-        ],
-        'excluded_file_names': [
-        ],
-        'included_file_names': [
-        ],
+        'excluded_directory_names': [],
+        'excluded_file_names': [],
+        'included_file_names': [],
     }
 
     MODIFIED_SINCE = None
@@ -226,9 +267,10 @@ def main_cli():
     # MODIFIED_SINCE = datetime.datetime(2022, 12, 1).timestamp()
 
     for current_path_name in herkules(
-            SOURCE_DIR,
-            selector=SELECTOR,
-            modified_since=MODIFIED_SINCE):
+        SOURCE_DIR,
+        selector=SELECTOR,
+        modified_since=MODIFIED_SINCE,
+    ):
         print(current_path_name)
 
 
