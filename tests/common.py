@@ -19,23 +19,41 @@ class TestCommon:
             # ruff: noqa: B904
             raise pytest.fail(f'raised unwanted exception {exception}')
 
-    def assert_herkules(
+    def assert_herkules_absolute(
         self,
         root_path,
         expected_files,
         actual_paths,
         ignore_order=False,
     ):
+        actual_paths_relative = []
+        for actual_path in actual_paths:
+            actual_path_relative = actual_path.relative_to(root_path)
+            actual_paths_relative.append(
+                pathlib.Path(actual_path_relative),
+            )
+
+        return self.assert_herkules_relative(
+            expected_files,
+            actual_paths_relative,
+            ignore_order,
+        )
+
+    def assert_herkules_relative(
+        self,
+        expected_files,
+        actual_paths,
+        ignore_order=False,
+    ):
         actual_files = []
-        for file_path in actual_paths:
+        for actual_path in actual_paths:
             assert isinstance(
-                file_path,
+                actual_path,
                 pathlib.Path,
             )
 
-            file_path_relative = file_path.relative_to(root_path)
             actual_files.append(
-                str(file_path_relative),
+                str(actual_path),
             )
 
         if ignore_order:
