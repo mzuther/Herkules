@@ -64,8 +64,8 @@ def is_directory_included(
         return False
 
     return has_been_modified(
-        dir_entry,
-        modified_since,
+        dir_entry=dir_entry,
+        modified_since=modified_since,
     )
 
 
@@ -92,8 +92,8 @@ def is_file_included(
         return False
 
     return has_been_modified(
-        dir_entry,
-        modified_since,
+        dir_entry=dir_entry,
+        modified_since=modified_since,
     )
 
 
@@ -154,18 +154,50 @@ def herkules(
     follow_symlinks=False,
     selector=None,
     modified_since=None,
+    relative_to_root=False,
+):
+    paths_relative_to_current_directory = _herkules_recurse(
+        root_directory=root_directory,
+        directories_first=directories_first,
+        include_directories=include_directories,
+        follow_symlinks=follow_symlinks,
+        selector=selector,
+        modified_since=modified_since,
+    )
+
+    if not relative_to_root:
+        return paths_relative_to_current_directory
+
+    paths_relative_to_root_directory = []
+    for current_path in paths_relative_to_current_directory:
+        paths_relative_to_root_directory.append(
+            pathlib.Path(
+                current_path.relative_to(root_directory),
+            )
+        )
+
+    return paths_relative_to_root_directory
+
+
+def _herkules_recurse(
+    root_directory,
+    directories_first=True,
+    include_directories=False,
+    follow_symlinks=False,
+    selector=None,
+    modified_since=None,
 ):
     root_directory, selector, modified_since = herkules_prepare(
-        root_directory,
-        selector,
-        modified_since,
+        root_directory=root_directory,
+        selector=selector,
+        modified_since=modified_since,
     )
 
     directories, files = herkules_process(
-        root_directory,
-        follow_symlinks,
-        selector,
-        modified_since,
+        root_directory=root_directory,
+        follow_symlinks=follow_symlinks,
+        selector=selector,
+        modified_since=modified_since,
     )
 
     # sort results
@@ -180,13 +212,13 @@ def herkules(
 
     # recurse
     for current_directory in directories:
-        deep_found_items = herkules(
-            current_directory,
-            directories_first,
-            include_directories,
-            follow_symlinks,
-            selector,
-            modified_since,
+        deep_found_items = _herkules_recurse(
+            root_directory=current_directory,
+            directories_first=directories_first,
+            include_directories=include_directories,
+            follow_symlinks=follow_symlinks,
+            selector=selector,
+            modified_since=modified_since,
         )
 
         if include_directories:
@@ -216,20 +248,20 @@ def herkules_process(
 
         # process directories
         if is_directory_included(
-            current_path,
-            dir_entry,
-            follow_symlinks,
-            selector,
-            modified_since,
+            current_path=current_path,
+            dir_entry=dir_entry,
+            follow_symlinks=follow_symlinks,
+            selector=selector,
+            modified_since=modified_since,
         ):
             directories.append(current_path)
         # process files
         elif is_file_included(
-            current_path,
-            dir_entry,
-            follow_symlinks,
-            selector,
-            modified_since,
+            current_path=current_path,
+            dir_entry=dir_entry,
+            follow_symlinks=follow_symlinks,
+            selector=selector,
+            modified_since=modified_since,
         ):
             files.append(current_path)
 

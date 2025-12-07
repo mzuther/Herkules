@@ -8,7 +8,7 @@ from src.herkules.Herkules import herkules
 
 # %% Initialization
 # directory to be crawled (can also be a string)
-ROOT_DIRECTORY = pathlib.Path('.')
+ROOT_DIRECTORY = pathlib.Path('./tests/')
 
 # optional: return directories and their contents before regular files
 DIRECTORIES_FIRST = True
@@ -43,6 +43,9 @@ SELECTOR = {
 # the given time; for symlinks, this checks the original file
 MODIFIED_SINCE = datetime.datetime(2024, 8, 1, 8, 30, 0)
 
+# optional: if "False" (default), return paths relative to current directory;
+# otherwise, return paths relative to "ROOT_DIRECTORY"
+RELATIVE_TO_ROOT = False
 
 # %% Crawl directory & display results
 # "herkules()" returns a list of "pathlib.Path" objects
@@ -53,6 +56,7 @@ contents = herkules(
     FOLLOW_SYMLINKS,
     SELECTOR,
     MODIFIED_SINCE,
+    RELATIVE_TO_ROOT,
 )
 
 print()

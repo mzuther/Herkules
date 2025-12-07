@@ -59,7 +59,7 @@ herkules "./directory/"
 ## Execution
 
 See [example_herkules.py](./example_herkules.py) for example code and an
-explanation of parameters.
+explanation of the parameters.
 
 ## Code of conduct
 
