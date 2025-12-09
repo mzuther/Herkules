@@ -45,16 +45,15 @@ class TestCommon:
         actual_paths,
         ignore_order=False,
     ):
-        actual_files = []
         for actual_path in actual_paths:
             assert isinstance(
                 actual_path,
                 pathlib.Path,
             )
 
-            actual_files.append(
-                str(actual_path),
-            )
+        # force identical output, regardless of operating system
+        actual_files = [str(pathlib.Path(f)) for f in actual_paths]
+        expected_files = [str(pathlib.Path(f)) for f in expected_files]
 
         if ignore_order:
             expected_files = sorted(expected_files)
