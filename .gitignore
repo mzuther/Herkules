@@ -10,9 +10,14 @@ dist/
 wheels/
 *.egg-info
 
-# pytest
+# Python tools
 .coverage
+.mypy_cache/
 .pytest_cache/
+.ruff_cache/
+
+# VS Code
+.vscode/
 
 # Stempelwerk
 *_Debug.txt
