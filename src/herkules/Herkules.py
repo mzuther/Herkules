@@ -42,6 +42,7 @@
 # ----------------------------------------------------------------------------
 
 import datetime
+import operator
 import os
 import pathlib
 import sys
@@ -165,6 +166,11 @@ def herkules(
         modified_since=modified_since,
     )
 
+    # flatten output
+    paths_relative_to_current_directory = [
+        item['path'] for item in paths_relative_to_current_directory
+    ]
+
     if not relative_to_root:
         return paths_relative_to_current_directory
 
@@ -201,8 +207,8 @@ def _herkules_recurse(
     )
 
     # sort results
-    directories.sort()
-    files.sort()
+    directories.sort(key=operator.itemgetter('path'))
+    files.sort(key=operator.itemgetter('path'))
 
     # collect results
     found_items = []
@@ -213,7 +219,7 @@ def _herkules_recurse(
     # recurse
     for current_directory in directories:
         deep_found_items = _herkules_recurse(
-            root_directory=current_directory,
+            root_directory=current_directory['path'],
             directories_first=directories_first,
             include_directories=include_directories,
             follow_symlinks=follow_symlinks,
@@ -254,7 +260,11 @@ def herkules_process(
             selector=selector,
             modified_since=modified_since,
         ):
-            directories.append(current_path)
+            directories.append(
+                {
+                    'path': current_path,
+                }
+            )
         # process files
         elif is_file_included(
             current_path=current_path,
@@ -263,7 +273,11 @@ def herkules_process(
             selector=selector,
             modified_since=modified_since,
         ):
-            files.append(current_path)
+            files.append(
+                {
+                    'path': current_path,
+                }
+            )
 
     return directories, files
 
