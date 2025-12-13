@@ -187,11 +187,11 @@ def herkules(
 
 def _herkules_recurse(
     root_directory,
-    directories_first=True,
-    include_directories=False,
-    follow_symlinks=False,
-    selector=None,
-    modified_since=None,
+    directories_first,
+    include_directories,
+    follow_symlinks,
+    selector,
+    modified_since,
 ):
     root_directory, selector, modified_since = herkules_prepare(
         root_directory=root_directory,
