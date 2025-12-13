@@ -692,3 +692,27 @@ class TestBeetle(TestCommon):
             expected_files,
             actual_paths,
         )
+
+    @pytest.mark.datafiles(FIXTURE_DIR)
+    def test_added_metadata(
+        self,
+        datafiles,
+    ):
+        actual_paths_with_metadata = herkules(
+            datafiles,
+            include_directories=True,
+            directories_first=True,
+            relative_to_root=True,
+            add_metadata=True,
+        )
+
+        for entry in actual_paths_with_metadata:
+            assert isinstance(entry['mtime'], float)
+
+        actual_paths = [entry['path'] for entry in actual_paths_with_metadata]
+
+        expected_files = TEST_FILES_AND_DIRS
+        self.assert_herkules_relative(
+            expected_files,
+            actual_paths,
+        )

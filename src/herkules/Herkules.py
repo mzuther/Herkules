@@ -47,7 +47,7 @@ import os
 import pathlib
 import sys
 
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 
 def is_directory_included(
@@ -56,6 +56,7 @@ def is_directory_included(
     follow_symlinks,
     selector,
     modified_since,
+    modification_time_in_seconds,
 ):
     if not dir_entry.is_dir(follow_symlinks=follow_symlinks):
         return False
@@ -64,10 +65,12 @@ def is_directory_included(
     if current_path.name in selector['excluded_directory_names']:
         return False
 
-    return has_been_modified(
-        dir_entry=dir_entry,
-        modified_since=modified_since,
-    )
+    # include all directories
+    if modified_since is None:
+        return True
+
+    # directory has been modified
+    return modification_time_in_seconds >= modified_since
 
 
 def is_file_included(
@@ -76,6 +79,7 @@ def is_file_included(
     follow_symlinks,
     selector,
     modified_since,
+    modification_time_in_seconds,
 ):
     if not dir_entry.is_file(follow_symlinks=follow_symlinks):
         return False
@@ -92,29 +96,11 @@ def is_file_included(
     else:
         return False
 
-    return has_been_modified(
-        dir_entry=dir_entry,
-        modified_since=modified_since,
-    )
-
-
-def has_been_modified(
-    dir_entry,
-    modified_since,
-):
-    # "stat" is costly
-    if not modified_since:
+    # include all files
+    if modified_since is None:
         return True
 
-    # only include paths modified after a given date; get timestamp of linked
-    # path, not of symlink
-    stat_result = dir_entry.stat(follow_symlinks=True)
-
-    # "st_mtime_ns" gets the exact timestamp, although nanoseconds may be
-    # missing or inexact; any file system idiosyncracies (Microsoft, I mean
-    # you!) shall be handled in the client code
-    modification_time_in_seconds = stat_result.st_mtime_ns / 1e9
-
+    # file has been modified
     return modification_time_in_seconds >= modified_since
 
 
@@ -156,33 +142,37 @@ def herkules(
     selector=None,
     modified_since=None,
     relative_to_root=False,
+    add_metadata=False,
 ):
-    paths_relative_to_current_directory = _herkules_recurse(
+    found_entries = _herkules_recurse(
         root_directory=root_directory,
         directories_first=directories_first,
         include_directories=include_directories,
         follow_symlinks=follow_symlinks,
         selector=selector,
         modified_since=modified_since,
+        add_metadata=add_metadata,
     )
 
-    # flatten output
-    paths_relative_to_current_directory = [
-        item['path'] for item in paths_relative_to_current_directory
-    ]
+    if relative_to_root:
+        found_entries_new = []
 
-    if not relative_to_root:
-        return paths_relative_to_current_directory
-
-    paths_relative_to_root_directory = []
-    for current_path in paths_relative_to_current_directory:
-        paths_relative_to_root_directory.append(
-            pathlib.Path(
-                current_path.relative_to(root_directory),
+        # creating a new list should be faster than modifying the existing one
+        # in-place
+        for entry in found_entries:
+            entry['path'] = pathlib.Path(
+                entry['path'].relative_to(root_directory),
             )
-        )
 
-    return paths_relative_to_root_directory
+            found_entries_new.append(entry)
+
+        found_entries = found_entries_new
+
+    # flatten output
+    if not add_metadata:
+        found_entries = [entry['path'] for entry in found_entries]
+
+    return found_entries
 
 
 def _herkules_recurse(
@@ -192,6 +182,7 @@ def _herkules_recurse(
     follow_symlinks,
     selector,
     modified_since,
+    add_metadata,
 ):
     root_directory, selector, modified_since = herkules_prepare(
         root_directory=root_directory,
@@ -204,6 +195,7 @@ def _herkules_recurse(
         follow_symlinks=follow_symlinks,
         selector=selector,
         modified_since=modified_since,
+        add_metadata=add_metadata,
     )
 
     # sort results
@@ -211,31 +203,32 @@ def _herkules_recurse(
     files.sort(key=operator.itemgetter('path'))
 
     # collect results
-    found_items = []
+    found_entries = []
 
     if not directories_first:
-        found_items.extend(files)
+        found_entries.extend(files)
 
     # recurse
     for current_directory in directories:
-        deep_found_items = _herkules_recurse(
+        deep_found_entries = _herkules_recurse(
             root_directory=current_directory['path'],
             directories_first=directories_first,
             include_directories=include_directories,
             follow_symlinks=follow_symlinks,
             selector=selector,
             modified_since=modified_since,
+            add_metadata=add_metadata,
         )
 
         if include_directories:
-            found_items.append(current_directory)
+            found_entries.append(current_directory)
 
-        found_items.extend(deep_found_items)
+        found_entries.extend(deep_found_entries)
 
     if directories_first:
-        found_items.extend(files)
+        found_entries.extend(files)
 
-    return found_items
+    return found_entries
 
 
 def herkules_process(
@@ -243,6 +236,7 @@ def herkules_process(
     follow_symlinks,
     selector,
     modified_since,
+    add_metadata,
 ):
     directories = []
     files = []
@@ -252,6 +246,19 @@ def herkules_process(
     for dir_entry in os.scandir(root_directory):
         current_path = root_directory / dir_entry.name
 
+        # "stat" is costly
+        if add_metadata or modified_since:
+            # only include paths modified after a given date; get timestamp of
+            # linked path, not of symlink
+            stat_result = dir_entry.stat(follow_symlinks=True)
+
+            # "st_mtime_ns" gets the exact timestamp, although nanoseconds may
+            # be missing or inexact; any file system idiosyncracies (Microsoft,
+            # I mean you!) shall be handled in the client code
+            modification_time_in_seconds = stat_result.st_mtime_ns / 1e9
+        else:
+            modification_time_in_seconds = None
+
         # process directories
         if is_directory_included(
             current_path=current_path,
@@ -259,10 +266,12 @@ def herkules_process(
             follow_symlinks=follow_symlinks,
             selector=selector,
             modified_since=modified_since,
+            modification_time_in_seconds=modification_time_in_seconds,
         ):
             directories.append(
                 {
                     'path': current_path,
+                    'mtime': modification_time_in_seconds,
                 }
             )
         # process files
@@ -272,10 +281,12 @@ def herkules_process(
             follow_symlinks=follow_symlinks,
             selector=selector,
             modified_since=modified_since,
+            modification_time_in_seconds=modification_time_in_seconds,
         ):
             files.append(
                 {
                     'path': current_path,
+                    'mtime': modification_time_in_seconds,
                 }
             )
 

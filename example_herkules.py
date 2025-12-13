@@ -47,16 +47,21 @@ MODIFIED_SINCE = datetime.datetime(2024, 8, 1, 8, 30, 0)
 # otherwise, return paths relative to "ROOT_DIRECTORY"
 RELATIVE_TO_ROOT = False
 
+# optional: if "False" (default), return list of paths; otherwise, return list
+# of dictonaries with keys "path" and "mtime" (for modification time)
+ADD_METADATA = False
+
 # %% Crawl directory & display results
 # "herkules()" returns a list of "pathlib.Path" objects
 contents = herkules(
-    ROOT_DIRECTORY,
-    DIRECTORIES_FIRST,
-    INCLUDE_DIRECTORIES,
-    FOLLOW_SYMLINKS,
-    SELECTOR,
-    MODIFIED_SINCE,
-    RELATIVE_TO_ROOT,
+    root_directory=ROOT_DIRECTORY,
+    directories_first=DIRECTORIES_FIRST,
+    include_directories=INCLUDE_DIRECTORIES,
+    follow_symlinks=FOLLOW_SYMLINKS,
+    selector=SELECTOR,
+    modified_since=MODIFIED_SINCE,
+    relative_to_root=RELATIVE_TO_ROOT,
+    add_metadata=ADD_METADATA,
 )
 
 print()

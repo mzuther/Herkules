@@ -16,6 +16,26 @@ happens._
 
 <!--- ---------------------------------------------------------------------- -->
 
+## [1.1.1] - 2025-12-13
+
+### Added
+
+- add new option `add_metadata` which returns a list of dictonaries with keys
+  "path" and "mtime" (the option defaults to `False`, so no changes are needed
+  for existing code)
+
+### Changed
+
+- change internal representation of directory tree
+- remove default values from `_herkules_recurse()`
+- update `.gitignore`
+
+### Fixed
+
+- fix unit tests on Windows (file separator)
+
+<!--- ---------------------------------------------------------------------- -->
+
 ## [1.1.0] - 2025-12-07
 
 ### Added
