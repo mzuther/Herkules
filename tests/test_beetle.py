@@ -359,6 +359,62 @@ class TestBeetle(TestCommon):
         )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
+    def test_excluded_directories_1(
+        self,
+        datafiles,
+    ):
+        SELECTOR = {
+            'excluded_directory_names': [
+                'dir.ext',
+            ],
+            'excluded_file_names': [],
+            'included_file_names': [],
+        }
+
+        actual_paths = herkules(
+            datafiles,
+            selector=SELECTOR,
+            relative_to_root=True,
+        )
+
+        expected_files = [f for f in TEST_FILES if not f.startswith('dir.ext/')]
+        self.assert_herkules_relative(
+            expected_files,
+            actual_paths,
+        )
+
+    @pytest.mark.datafiles(FIXTURE_DIR)
+    def test_excluded_directories_2(
+        self,
+        datafiles,
+    ):
+        SELECTOR = {
+            'excluded_directory_names': [
+                'dir.ext',
+            ],
+            'excluded_file_names': [
+                '.hidden.txt',
+            ],
+            'included_file_names': [],
+        }
+
+        actual_paths = herkules(
+            datafiles,
+            selector=SELECTOR,
+            relative_to_root=True,
+        )
+
+        expected_files = [
+            f
+            for f in TEST_FILES
+            if not f.startswith('dir.ext/') and not f.endswith('.hidden.txt')
+        ]
+        self.assert_herkules_relative(
+            expected_files,
+            actual_paths,
+        )
+
+    @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_files_1(
         self,
         datafiles,
