@@ -49,6 +49,13 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 path = "src/herkules/Herkules.py"
 
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+skip_covered = true
+skip_empty = true
+
 [tool.pytest.ini_options]
 markers = [
     "current: marks tests as current (select with '-m current')",
