@@ -12,7 +12,20 @@ happens._
 
 ## Unreleased
 
+<!--- ---------------------------------------------------------------------- -->
+
+## 1.2.0 - 2025-12-18
+
+### Added
+
+- add functions `herkules_diff_run()` and `herkules_diff()` which find differences
+  between old runs of `herkules()` and the current state
+
 ### Changed
+
+- enhance `example_herkules.py`
+- refactor code and tests
+- add coverage support and add tests for missing coverage
 
 <!--- ---------------------------------------------------------------------- -->
 

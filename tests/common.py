@@ -59,3 +59,20 @@ class TestCommon:
             print()
 
             pytest.fail('Found differing files.')
+
+    def create_herkules_entry_from_path(
+        self,
+        absolute_path,
+        root_directory,
+    ):
+        stat_result = absolute_path.stat(follow_symlinks=True)
+        modification_time_in_seconds = stat_result.st_mtime_ns / 1e9
+
+        entry = {
+            'path': pathlib.Path(
+                absolute_path.relative_to(root_directory),
+            ),
+            'mtime': modification_time_in_seconds,
+        }
+
+        return entry

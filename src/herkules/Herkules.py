@@ -47,7 +47,7 @@ import os
 import pathlib
 import sys
 
-__version__ = '1.1.1'
+__version__ = '1.2.0'
 
 
 def _is_directory_included(
@@ -158,6 +158,30 @@ def _convert_flatten_paths(
     flattened_entries = [entry['path'] for entry in entries]
 
     return flattened_entries
+
+
+def _convert_dict_of_dicts(
+    entries,
+    root_directory,
+):
+    sorted_entries = sorted(
+        entries,
+        key=lambda k: str(k['path']),
+    )
+
+    result = {}
+    for entry in sorted_entries:
+        # ensure correct types
+        current_path = pathlib.Path(entry['path'])
+        current_mtime = float(entry['mtime'])
+
+        entry['path'] = current_path
+        entry['mtime'] = current_mtime
+
+        entry_id = str(current_path)
+        result[entry_id] = entry
+
+    return result
 
 
 def herkules(
@@ -310,6 +334,115 @@ def _herkules_process(
             )
 
     return directories, files
+
+
+def herkules_diff_run(
+    original_paths_or_files,
+    root_directory,
+    directories_first=True,
+    include_directories=False,
+    follow_symlinks=False,
+    selector=None,
+    relative_to_root=False,
+):
+    actual_paths = herkules(
+        root_directory=root_directory,
+        directories_first=directories_first,
+        include_directories=include_directories,
+        follow_symlinks=follow_symlinks,
+        selector=selector,
+        relative_to_root=relative_to_root,
+        add_metadata=True,
+    )
+
+    differing_entries = herkules_diff(
+        original_paths_or_files,
+        actual_paths,
+        root_directory,
+    )
+
+    return differing_entries
+
+
+def _herkules_diff_prepare(
+    original_paths_or_files,
+    actual_paths_or_files,
+    root_directory,
+):
+    # entries must exist
+    if len(original_paths_or_files) < 1:
+        raise ValueError('"original_paths_or_files" contains no entries')
+
+    if len(actual_paths_or_files) < 1:
+        raise ValueError('"actual_paths_or_files" contains no entries')
+
+    original_entry = original_paths_or_files[0]
+    actual_entry = actual_paths_or_files[0]
+
+    # entries must contain metadata; this should catch most issues without
+    # impacting performance
+    if not (isinstance(original_entry, dict) and 'mtime' in original_entry):
+        raise ValueError('"original_paths_or_files" contains no metadata')
+
+    if not (isinstance(actual_entry, dict) and 'mtime' in actual_entry):
+        raise ValueError('"actual_paths_or_files" contains no metadata')
+
+    original_paths = _convert_dict_of_dicts(
+        original_paths_or_files,
+        root_directory,
+    )
+
+    actual_paths = _convert_dict_of_dicts(
+        actual_paths_or_files,
+        root_directory,
+    )
+
+    return original_paths, actual_paths
+
+
+def herkules_diff(
+    original_paths_or_files,
+    actual_paths_or_files,
+    root_directory,
+):
+    original_paths, actual_paths = _herkules_diff_prepare(
+        original_paths_or_files,
+        actual_paths_or_files,
+        root_directory,
+    )
+
+    differing_entries = {
+        'added': [],
+        'modified': [],
+        'deleted': [],
+    }
+
+    for entry_id in original_paths:
+        # check for deletion
+        if entry_id not in actual_paths:
+            original_entry = original_paths[entry_id]
+
+            differing_entries['deleted'].append(original_entry)
+        # check for modification
+        else:
+            original_entry = original_paths[entry_id]
+            actual_entry = actual_paths[entry_id]
+
+            original_mtime = original_entry['mtime']
+            actual_mtime = actual_entry['mtime']
+
+            if original_mtime != actual_mtime:
+                original_entry['mtime_diff'] = actual_mtime - original_mtime
+                differing_entries['modified'].append(original_entry)
+
+    for entry_id in actual_paths:
+        # check for creation
+        if entry_id not in original_paths:
+            actual_entry = actual_paths[entry_id]
+
+            differing_entries['added'].append(actual_entry)
+
+    return differing_entries
 
 
 def main_cli():  # pragma: no coverage

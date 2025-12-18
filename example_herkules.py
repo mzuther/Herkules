@@ -3,8 +3,9 @@
 # %% Imports
 import datetime
 import pathlib
+import time
 
-from src.herkules.Herkules import herkules
+from src.herkules.Herkules import herkules, herkules_diff_run
 
 # %% Initialization
 # directory to be crawled (can also be a string)
@@ -64,7 +65,48 @@ contents = herkules(
 )
 
 print()
+print('Found files:')
+print()
+
 for entry in contents:
     entry_path = entry['path']
     print(f'* {entry_path}')
+print()
+
+# fake creation of two files
+del contents[3]
+del contents[12]
+
+# modify a file
+contents[1]['path'].touch(exist_ok=True)
+
+# fake deletion of file
+contents.append(
+    {
+        'path': pathlib.Path('tests/trash/~deleted.txt'),
+        'mtime': time.time(),
+    }
+)
+
+# %% Find differences between former run and current state
+differing_entries = herkules_diff_run(
+    original_paths_or_files=contents,
+    root_directory=ROOT_DIRECTORY,
+    directories_first=DIRECTORIES_FIRST,
+    include_directories=INCLUDE_DIRECTORIES,
+    follow_symlinks=FOLLOW_SYMLINKS,
+    selector=SELECTOR,
+    relative_to_root=RELATIVE_TO_ROOT,
+)
+
+print('Changed files:')
+
+for category in differing_entries:
+    print()
+    print(f'[{category}]')
+
+    for entry in differing_entries[category]:
+        entry_path = entry['path']
+        print(f'* {entry_path}')
+
 print()
