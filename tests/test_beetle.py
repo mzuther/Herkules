@@ -61,12 +61,19 @@ for entry in TEST_FILES:
 def set_mtime_to_current_time(
     dir_path,
 ):
+    current_epoch = time.time()
+
     for path_in_directory in herkules(
         dir_path,
         include_directories=True,
         relative_to_root=False,
     ):
-        os.utime(path_in_directory, times=None)
+        os.utime(
+            path_in_directory,
+            times=(current_epoch, current_epoch),
+        )
+
+    return current_epoch
 
 
 class TestBeetle(TestCommon):
@@ -662,13 +669,12 @@ class TestBeetle(TestCommon):
         self,
         datafiles,
     ):
-        modified_since = datetime.datetime.now()
-        set_mtime_to_current_time(datafiles)
+        modified_since = set_mtime_to_current_time(datafiles)
 
         actual_paths = herkules(
             datafiles,
             include_directories=True,
-            modified_since=modified_since.timestamp(),
+            modified_since=modified_since,
             relative_to_root=True,
         )
 
@@ -679,12 +685,11 @@ class TestBeetle(TestCommon):
         )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
-    def test_modified_1_in_between(
+    def test_modified_1_in_between_directories(
         self,
         datafiles,
     ):
-        modified_since = datetime.datetime.now()
-        set_mtime_to_current_time(datafiles)
+        modified_since = set_mtime_to_current_time(datafiles)
 
         actual_paths = herkules(
             datafiles,
