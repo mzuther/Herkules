@@ -66,7 +66,7 @@ testpaths = [
 ]
 
 [tool.ruff]
-line-length = 80
+line-length = 79
 
 [tool.ruff.format]
 quote-style = "single"

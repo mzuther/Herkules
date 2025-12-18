@@ -377,7 +377,9 @@ class TestBeetle(TestCommon):
             relative_to_root=True,
         )
 
-        expected_files = [f for f in TEST_FILES if not f.startswith('dir.ext/')]
+        expected_files = [
+            f for f in TEST_FILES if not f.startswith('dir.ext/')
+        ]
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -433,7 +435,9 @@ class TestBeetle(TestCommon):
             relative_to_root=True,
         )
 
-        expected_files = [f for f in TEST_FILES if not f.endswith('normal.txt')]
+        expected_files = [
+            f for f in TEST_FILES if not f.endswith('normal.txt')
+        ]
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -566,7 +570,9 @@ class TestBeetle(TestCommon):
             relative_to_root=True,
         )
 
-        expected_files = [f for f in TEST_FILES if not f.endswith('normal.txt')]
+        expected_files = [
+            f for f in TEST_FILES if not f.endswith('normal.txt')
+        ]
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -702,7 +708,9 @@ class TestBeetle(TestCommon):
         datafiles,
     ):
         # wait for fixture data to settle down
-        modified_since = datetime.datetime.now() + datetime.timedelta(seconds=1)
+        modified_since = datetime.datetime.now() + datetime.timedelta(
+            seconds=1
+        )
 
         actual_paths = herkules(
             datafiles,
@@ -724,7 +732,9 @@ class TestBeetle(TestCommon):
         datafiles,
     ):
         # wait for fixture data to settle down
-        modified_since = datetime.datetime.now() + datetime.timedelta(seconds=1)
+        modified_since = datetime.datetime.now() + datetime.timedelta(
+            seconds=1
+        )
         time.sleep(1.0)
 
         new_dir = datafiles.joinpath('new.dir')
