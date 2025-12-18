@@ -49,10 +49,9 @@ RELATIVE_TO_ROOT = False
 
 # optional: if "False" (default), return list of paths; otherwise, return list
 # of dictonaries with keys "path" and "mtime" (for modification time)
-ADD_METADATA = False
+ADD_METADATA = True
 
-# %% Crawl directory & display results
-# "herkules()" returns a list of "pathlib.Path" objects
+# %% Crawl directory
 contents = herkules(
     root_directory=ROOT_DIRECTORY,
     directories_first=DIRECTORIES_FIRST,
@@ -66,5 +65,6 @@ contents = herkules(
 
 print()
 for entry in contents:
-    print(f'* {entry}')
+    entry_path = entry['path']
+    print(f'* {entry_path}')
 print()

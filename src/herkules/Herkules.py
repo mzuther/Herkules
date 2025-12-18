@@ -50,7 +50,7 @@ import sys
 __version__ = '1.1.1'
 
 
-def is_directory_included(
+def _is_directory_included(
     current_path,
     dir_entry,
     follow_symlinks,
@@ -73,7 +73,7 @@ def is_directory_included(
     return modification_time_in_seconds >= modified_since
 
 
-def is_file_included(
+def _is_file_included(
     current_path,
     dir_entry,
     follow_symlinks,
@@ -104,7 +104,7 @@ def is_file_included(
     return modification_time_in_seconds >= modified_since
 
 
-def herkules_prepare(
+def _herkules_prepare(
     root_directory,
     selector,
     modified_since,
@@ -134,6 +134,32 @@ def herkules_prepare(
     return (root_directory, selector, modified_since)
 
 
+def _convert_relative_to_root(
+    entries,
+    root_directory,
+):
+    entries_relative = []
+
+    # creating a new list should be faster than modifying the existing one
+    # in-place
+    for entry in entries:
+        entry['path'] = pathlib.Path(
+            entry['path'].relative_to(root_directory),
+        )
+
+        entries_relative.append(entry)
+
+    return entries_relative
+
+
+def _convert_flatten_paths(
+    entries,
+):
+    flattened_entries = [entry['path'] for entry in entries]
+
+    return flattened_entries
+
+
 def herkules(
     root_directory,
     directories_first=True,
@@ -155,22 +181,15 @@ def herkules(
     )
 
     if relative_to_root:
-        found_entries_new = []
+        found_entries = _convert_relative_to_root(
+            found_entries,
+            root_directory,
+        )
 
-        # creating a new list should be faster than modifying the existing one
-        # in-place
-        for entry in found_entries:
-            entry['path'] = pathlib.Path(
-                entry['path'].relative_to(root_directory),
-            )
-
-            found_entries_new.append(entry)
-
-        found_entries = found_entries_new
-
-    # flatten output
     if not add_metadata:
-        found_entries = [entry['path'] for entry in found_entries]
+        found_entries = _convert_flatten_paths(
+            found_entries,
+        )
 
     return found_entries
 
@@ -184,13 +203,13 @@ def _herkules_recurse(
     modified_since,
     add_metadata,
 ):
-    root_directory, selector, modified_since = herkules_prepare(
+    root_directory, selector, modified_since = _herkules_prepare(
         root_directory=root_directory,
         selector=selector,
         modified_since=modified_since,
     )
 
-    directories, files = herkules_process(
+    directories, files = _herkules_process(
         root_directory=root_directory,
         follow_symlinks=follow_symlinks,
         selector=selector,
@@ -231,7 +250,7 @@ def _herkules_recurse(
     return found_entries
 
 
-def herkules_process(
+def _herkules_process(
     root_directory,
     follow_symlinks,
     selector,
@@ -260,7 +279,7 @@ def herkules_process(
             modification_time_in_seconds = None
 
         # process directories
-        if is_directory_included(
+        if _is_directory_included(
             current_path=current_path,
             dir_entry=dir_entry,
             follow_symlinks=follow_symlinks,
@@ -275,7 +294,7 @@ def herkules_process(
                 }
             )
         # process files
-        elif is_file_included(
+        elif _is_file_included(
             current_path=current_path,
             dir_entry=dir_entry,
             follow_symlinks=follow_symlinks,
