@@ -49,7 +49,7 @@ import sys
 
 import src.herkules.HerkulesTypes as Types
 
-__version__ = '1.2.0'
+__version__ = '1.2.1'
 
 
 def _is_directory_included(
