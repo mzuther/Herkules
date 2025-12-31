@@ -5,6 +5,7 @@ import datetime
 import pathlib
 import time
 
+import src.herkules.HerkulesTypes as Types
 from src.herkules.Herkules import herkules, herkules_diff_run
 
 # %% Initialization
@@ -22,7 +23,7 @@ INCLUDE_DIRECTORIES = False
 FOLLOW_SYMLINKS = False
 
 # globs: https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.match
-SELECTOR = {
+SELECTOR: Types.Selector = {
     # optional: directories that should not be crawled (full name is matched)
     'excluded_directory_names': [
         '.git',
@@ -69,7 +70,7 @@ print('Found files:')
 print()
 
 for entry in contents:
-    entry_path = entry['path']
+    entry_path = entry['path']  # type: ignore
     print(f'* {entry_path}')
 print()
 
@@ -78,19 +79,19 @@ del contents[3]
 del contents[12]
 
 # modify a file
-contents[1]['path'].touch(exist_ok=True)
+contents[1]['path'].touch(exist_ok=True)  # type: ignore
 
 # fake deletion of file
-contents.append(
-    {
-        'path': pathlib.Path('tests/trash/~deleted.txt'),
-        'mtime': time.time(),
-    }
-)
+deleted_file = {
+    'path': pathlib.Path('tests/trash/~deleted.txt'),
+    'mtime': time.time(),
+}
+
+contents.append(deleted_file)  # type: ignore
 
 # %% Find differences between former run and current state
 differing_entries = herkules_diff_run(
-    original_paths_or_files=contents,
+    original_entries=contents,  # type: ignore
     root_directory=ROOT_DIRECTORY,
     directories_first=DIRECTORIES_FIRST,
     include_directories=INCLUDE_DIRECTORIES,
@@ -105,8 +106,8 @@ for category in differing_entries:
     print()
     print(f'[{category}]')
 
-    for entry in differing_entries[category]:
-        entry_path = entry['path']
+    for entry in differing_entries[category]:  # type: ignore
+        entry_path = entry['path']  # type: ignore
         print(f'* {entry_path}')
 
 print()

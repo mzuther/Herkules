@@ -47,17 +47,19 @@ import os
 import pathlib
 import sys
 
+import src.herkules.HerkulesTypes as Types
+
 __version__ = '1.2.0'
 
 
 def _is_directory_included(
-    current_path,
-    dir_entry,
-    follow_symlinks,
-    selector,
-    modified_since,
-    modification_time_in_seconds,
-):
+    current_path: pathlib.Path,
+    dir_entry: os.DirEntry[str],
+    follow_symlinks: bool,
+    selector: Types.Selector,
+    modified_since: Types.ModificationTime,
+    modification_time_in_seconds: Types.ModificationTime,
+) -> bool:
     if not dir_entry.is_dir(follow_symlinks=follow_symlinks):
         return False
 
@@ -69,18 +71,21 @@ def _is_directory_included(
     if modified_since is None:
         return True
 
-    # directory has been modified
-    return modification_time_in_seconds >= modified_since
+    # has directory been modified?
+    return (
+        modification_time_in_seconds is None
+        or modification_time_in_seconds >= modified_since
+    )
 
 
 def _is_file_included(
-    current_path,
-    dir_entry,
-    follow_symlinks,
-    selector,
-    modified_since,
-    modification_time_in_seconds,
-):
+    current_path: pathlib.Path,
+    dir_entry: os.DirEntry[str],
+    follow_symlinks: bool,
+    selector: Types.Selector,
+    modified_since: Types.ModificationTime,
+    modification_time_in_seconds: Types.ModificationTime,
+) -> bool:
     if not dir_entry.is_file(follow_symlinks=follow_symlinks):
         return False
 
@@ -100,18 +105,27 @@ def _is_file_included(
     if modified_since is None:
         return True
 
-    # file has been modified
-    return modification_time_in_seconds >= modified_since
+    # has file been modified?
+    return (
+        modification_time_in_seconds is None
+        or modification_time_in_seconds >= modified_since
+    )
 
 
 def _herkules_prepare(
-    root_directory,
-    selector,
-    modified_since,
-):
-    root_directory = pathlib.Path(root_directory)
+    root_directory: str | pathlib.Path,
+    selector: Types.Selector | None,
+    modified_since: datetime.datetime | Types.ModificationTime,
+) -> tuple[
+    pathlib.Path,
+    Types.Selector,
+    Types.ModificationTime,
+]:
+    root_directory = pathlib.Path(
+        root_directory,
+    )
 
-    if not selector:
+    if selector is None:
         selector = {}
 
     if not selector.get('excluded_directory_names'):
@@ -124,20 +138,21 @@ def _herkules_prepare(
     if not selector.get('included_file_names'):
         selector['included_file_names'] = ['*']
 
-    # UNIX timestamp, remove digital places after period
+    # convert to UNIX timestamp
     if isinstance(modified_since, datetime.datetime):
         modified_since = modified_since.timestamp()
 
-    if modified_since:
-        modified_since = int(modified_since)
-
-    return (root_directory, selector, modified_since)
+    return (
+        root_directory,
+        selector,
+        modified_since,
+    )
 
 
 def _convert_relative_to_root(
-    entries,
-    root_directory,
-):
+    entries: Types.EntryList,
+    root_directory: pathlib.Path,
+) -> Types.EntryList:
     entries_relative = []
 
     # creating a new list should be faster than modifying the existing one
@@ -153,17 +168,17 @@ def _convert_relative_to_root(
 
 
 def _convert_flatten_paths(
-    entries,
-):
+    entries: Types.EntryList,
+) -> Types.EntryListFlattened:
     flattened_entries = [entry['path'] for entry in entries]
 
     return flattened_entries
 
 
 def _convert_dict_of_dicts(
-    entries,
-    root_directory,
-):
+    entries: Types.EntryList,
+    root_directory: pathlib.Path,
+) -> Types.DictOfEntries:
     sorted_entries = sorted(
         entries,
         key=lambda k: str(k['path']),
@@ -173,7 +188,7 @@ def _convert_dict_of_dicts(
     for entry in sorted_entries:
         # ensure correct types
         current_path = pathlib.Path(entry['path'])
-        current_mtime = float(entry['mtime'])
+        current_mtime = float(entry['mtime'])  # type: ignore
 
         entry['path'] = current_path
         entry['mtime'] = current_mtime
@@ -185,15 +200,21 @@ def _convert_dict_of_dicts(
 
 
 def herkules(
-    root_directory,
-    directories_first=True,
-    include_directories=False,
-    follow_symlinks=False,
-    selector=None,
-    modified_since=None,
-    relative_to_root=False,
-    add_metadata=False,
-):
+    root_directory: str | pathlib.Path,
+    directories_first: bool = True,
+    include_directories: bool = False,
+    follow_symlinks: bool = False,
+    selector: Types.Selector | None = None,
+    modified_since: datetime.datetime | Types.ModificationTime = None,
+    relative_to_root: bool = False,
+    add_metadata: bool = False,
+) -> Types.EntryList | Types.EntryListFlattened:
+    root_directory, selector, modified_since = _herkules_prepare(
+        root_directory=root_directory,
+        selector=selector,
+        modified_since=modified_since,
+    )
+
     found_entries = _herkules_recurse(
         root_directory=root_directory,
         directories_first=directories_first,
@@ -204,35 +225,31 @@ def herkules(
         add_metadata=add_metadata,
     )
 
+    result: Types.EntryList | Types.EntryListFlattened = found_entries
+
     if relative_to_root:
-        found_entries = _convert_relative_to_root(
+        result = _convert_relative_to_root(
             found_entries,
             root_directory,
         )
 
     if not add_metadata:
-        found_entries = _convert_flatten_paths(
+        result = _convert_flatten_paths(
             found_entries,
         )
 
-    return found_entries
+    return result
 
 
 def _herkules_recurse(
-    root_directory,
-    directories_first,
-    include_directories,
-    follow_symlinks,
-    selector,
-    modified_since,
-    add_metadata,
-):
-    root_directory, selector, modified_since = _herkules_prepare(
-        root_directory=root_directory,
-        selector=selector,
-        modified_since=modified_since,
-    )
-
+    root_directory: pathlib.Path,
+    directories_first: bool,
+    include_directories: bool,
+    follow_symlinks: bool,
+    selector: Types.Selector,
+    modified_since: Types.ModificationTime,
+    add_metadata: bool,
+) -> Types.EntryList:
     directories, files = _herkules_process(
         root_directory=root_directory,
         follow_symlinks=follow_symlinks,
@@ -275,14 +292,14 @@ def _herkules_recurse(
 
 
 def _herkules_process(
-    root_directory,
-    follow_symlinks,
-    selector,
-    modified_since,
-    add_metadata,
-):
-    directories = []
-    files = []
+    root_directory: pathlib.Path,
+    follow_symlinks: bool,
+    selector: Types.Selector,
+    modified_since: Types.ModificationTime,
+    add_metadata: bool,
+) -> tuple[Types.EntryList, Types.EntryList]:
+    directories: Types.EntryList = []
+    files: Types.EntryList = []
 
     # "os.scandir" minimizes system calls (including the retrieval of
     # timestamps)
@@ -337,15 +354,15 @@ def _herkules_process(
 
 
 def herkules_diff_run(
-    original_paths_or_files,
-    root_directory,
-    directories_first=True,
-    include_directories=False,
-    follow_symlinks=False,
-    selector=None,
-    relative_to_root=False,
-):
-    actual_paths = herkules(
+    original_entries: Types.EntryList,
+    root_directory: str | pathlib.Path,
+    directories_first: bool = True,
+    include_directories: bool = False,
+    follow_symlinks: bool = False,
+    selector: Types.Selector | None = None,
+    relative_to_root: bool = False,
+) -> Types.DiffResult:
+    actual_entries = herkules(
         root_directory=root_directory,
         directories_first=directories_first,
         include_directories=include_directories,
@@ -356,8 +373,8 @@ def herkules_diff_run(
     )
 
     differing_entries = herkules_diff(
-        original_paths_or_files,
-        actual_paths,
+        original_entries,
+        actual_entries,  # type: ignore
         root_directory,
     )
 
@@ -365,35 +382,39 @@ def herkules_diff_run(
 
 
 def _herkules_diff_prepare(
-    original_paths_or_files,
-    actual_paths_or_files,
-    root_directory,
-):
+    original_entries: Types.EntryList,
+    actual_entries: Types.EntryList,
+    root_directory: str | pathlib.Path,
+) -> tuple[Types.DictOfEntries, Types.DictOfEntries]:
     # entries must exist
-    if len(original_paths_or_files) < 1:
-        raise ValueError('"original_paths_or_files" contains no entries')
+    if len(original_entries) < 1:
+        raise ValueError('"original_entries" contains no entries')
 
-    if len(actual_paths_or_files) < 1:
-        raise ValueError('"actual_paths_or_files" contains no entries')
-
-    original_entry = original_paths_or_files[0]
-    actual_entry = actual_paths_or_files[0]
+    if len(actual_entries) < 1:
+        raise ValueError('"actual_entries" contains no entries')
 
     # entries must contain metadata; this should catch most issues without
     # impacting performance
+    original_entry = original_entries[0]
+    actual_entry = actual_entries[0]
+
     if not (isinstance(original_entry, dict) and 'mtime' in original_entry):
-        raise ValueError('"original_paths_or_files" contains no metadata')
+        raise ValueError('"original_entries" contains no metadata')
 
     if not (isinstance(actual_entry, dict) and 'mtime' in actual_entry):
-        raise ValueError('"actual_paths_or_files" contains no metadata')
+        raise ValueError('"actual_entries" contains no metadata')
+
+    root_directory = pathlib.Path(
+        root_directory,
+    )
 
     original_paths = _convert_dict_of_dicts(
-        original_paths_or_files,
+        original_entries,
         root_directory,
     )
 
     actual_paths = _convert_dict_of_dicts(
-        actual_paths_or_files,
+        actual_entries,
         root_directory,
     )
 
@@ -401,51 +422,53 @@ def _herkules_diff_prepare(
 
 
 def herkules_diff(
-    original_paths_or_files,
-    actual_paths_or_files,
-    root_directory,
-):
-    original_paths, actual_paths = _herkules_diff_prepare(
-        original_paths_or_files,
-        actual_paths_or_files,
+    original_entries_list: Types.EntryList,
+    actual_entries_list: Types.EntryList,
+    root_directory: str | pathlib.Path,
+) -> Types.DiffResult:
+    original_entries, actual_entries = _herkules_diff_prepare(
+        original_entries_list,
+        actual_entries_list,
         root_directory,
     )
 
-    differing_entries = {
+    differing_entries: Types.DiffResult = {
         'added': [],
         'modified': [],
         'deleted': [],
     }
 
-    for entry_id in original_paths:
+    for entry_id, original_entry in original_entries.items():
         # check for deletion
-        if entry_id not in actual_paths:
-            original_entry = original_paths[entry_id]
-
+        if entry_id not in actual_entries:
             differing_entries['deleted'].append(original_entry)
         # check for modification
         else:
-            original_entry = original_paths[entry_id]
-            actual_entry = actual_paths[entry_id]
+            actual_entry = actual_entries[entry_id]
 
             original_mtime = original_entry['mtime']
             actual_mtime = actual_entry['mtime']
 
             if original_mtime != actual_mtime:
-                original_entry['mtime_diff'] = actual_mtime - original_mtime
-                differing_entries['modified'].append(original_entry)
+                mtime_diff = actual_mtime - original_mtime  # type: ignore
 
-    for entry_id in actual_paths:
+                modified_entry: Types.HerkulesEntryDiff = {
+                    'path': original_entry['path'],
+                    'mtime': original_entry['mtime'],
+                    'mtime_diff': mtime_diff,  # type: ignore
+                }
+
+                differing_entries['modified'].append(modified_entry)
+
+    for entry_id, actual_entry in actual_entries.items():
         # check for creation
-        if entry_id not in original_paths:
-            actual_entry = actual_paths[entry_id]
-
+        if entry_id not in original_entries:
             differing_entries['added'].append(actual_entry)
 
     return differing_entries
 
 
-def main_cli():  # pragma: no coverage
+def main_cli() -> None:  # pragma: no coverage
     if len(sys.argv) < 2:
         print()
         print(f'version:   {__version__}')
@@ -464,7 +487,7 @@ def main_cli():  # pragma: no coverage
 
     SOURCE_DIR = sys.argv[1]
 
-    SELECTOR = {
+    SELECTOR: Types.Selector = {
         'excluded_directory_names': [],
         'excluded_file_names': [],
         'included_file_names': [],

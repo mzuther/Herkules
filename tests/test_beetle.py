@@ -16,8 +16,7 @@ import time
 import pytest
 
 from src.herkules.Herkules import herkules, herkules_diff, herkules_diff_run
-
-from .common import TestCommon
+from tests.common import TestCommon
 
 FIXTURE_DIR = pathlib.Path('tests') / 'beetle'
 
@@ -739,7 +738,7 @@ class TestBeetle(TestCommon):
     ):
         # wait for fixture data to settle down
         modified_since = datetime.datetime.now() + datetime.timedelta(
-            seconds=1
+            seconds=0.5
         )
         time.sleep(1.0)
 
@@ -839,8 +838,7 @@ class TestBeetle(TestCommon):
             )
 
         assert (
-            exc_info.value.args[0]
-            == '"original_paths_or_files" contains no entries'
+            exc_info.value.args[0] == '"original_entries" contains no entries'
         )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
@@ -862,10 +860,7 @@ class TestBeetle(TestCommon):
                 datafiles,
             )
 
-        assert (
-            exc_info.value.args[0]
-            == '"actual_paths_or_files" contains no entries'
-        )
+        assert exc_info.value.args[0] == '"actual_entries" contains no entries'
 
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_error_handling_no_metadata_1(
@@ -890,8 +885,7 @@ class TestBeetle(TestCommon):
             )
 
         assert (
-            exc_info.value.args[0]
-            == '"original_paths_or_files" contains no metadata'
+            exc_info.value.args[0] == '"original_entries" contains no metadata'
         )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
@@ -917,8 +911,7 @@ class TestBeetle(TestCommon):
             )
 
         assert (
-            exc_info.value.args[0]
-            == '"actual_paths_or_files" contains no metadata'
+            exc_info.value.args[0] == '"actual_entries" contains no metadata'
         )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
