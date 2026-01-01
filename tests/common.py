@@ -4,6 +4,45 @@ import sys
 
 import pytest
 
+import herkules.HerkulesTypes as Types
+
+TEST_FILES = [
+    '.hiddendir/.hidden',
+    '.hiddendir/.hidden.txt',
+    '.hiddendir/multi.dot.longext',
+    '.hiddendir/normal.txt',
+    # ---
+    '.hiddendir.ext/.hidden',
+    '.hiddendir.ext/.hidden.txt',
+    '.hiddendir.ext/multi.dot.longext',
+    '.hiddendir.ext/normal.txt',
+    # ---
+    'dir.ext/.hidden',
+    'dir.ext/.hidden.txt',
+    'dir.ext/multi.dot.longext',
+    'dir.ext/normal.txt',
+    # ---
+    'directory/.hidden',
+    'directory/.hidden.txt',
+    'directory/multi.dot.longext',
+    'directory/normal.txt',
+    # ---
+    '.hidden',
+    '.hidden.txt',
+    'multi.dot.longext',
+    'normal.txt',
+]
+
+TEST_FILES_AND_DIRS = []
+
+for entry in TEST_FILES:
+    if entry.endswith('/.hidden'):
+        TEST_FILES_AND_DIRS.append(
+            entry.removesuffix('/.hidden'),
+        )
+
+    TEST_FILES_AND_DIRS.append(entry)
+
 
 class TestCommon:
     def assert_herkules_absolute(
