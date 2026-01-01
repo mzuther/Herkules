@@ -46,6 +46,7 @@ import operator
 import os
 import pathlib
 import sys
+from typing import cast
 
 import herkules.HerkulesTypes as Types
 
@@ -191,9 +192,8 @@ def _convert_dict_of_dicts(
 
     result = {}
     for entry in sorted_entries:
-        # ensure correct types
-        current_path = pathlib.Path(entry['path'])
-        current_mtime = float(entry['mtime'])  # type: ignore
+        current_path = entry['path']
+        current_mtime = cast(float, entry['mtime'])
 
         entry['path'] = current_path
         entry['mtime'] = current_mtime
@@ -377,9 +377,11 @@ def herkules_diff_run(
         add_metadata=True,
     )
 
+    actual_entries = cast(Types.EntryList, actual_entries)
+
     differing_entries = herkules_diff(
         original_entries,
-        actual_entries,  # type: ignore
+        actual_entries,
         root_directory,
     )
 
@@ -451,16 +453,19 @@ def herkules_diff(
         else:
             actual_entry = actual_entries[entry_id]
 
-            original_mtime = original_entry['mtime']
             actual_mtime = actual_entry['mtime']
+            original_mtime = original_entry['mtime']
+
+            assert isinstance(actual_mtime, float)
+            assert isinstance(original_mtime, float)
 
             if original_mtime != actual_mtime:
-                mtime_diff = actual_mtime - original_mtime  # type: ignore
+                mtime_diff = actual_mtime - original_mtime
 
                 modified_entry: Types.HerkulesEntryDiff = {
                     'path': original_entry['path'],
                     'mtime': original_entry['mtime'],
-                    'mtime_diff': mtime_diff,  # type: ignore
+                    'mtime_diff': mtime_diff,
                 }
 
                 differing_entries['modified'].append(modified_entry)

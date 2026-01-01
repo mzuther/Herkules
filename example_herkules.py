@@ -4,6 +4,7 @@
 import datetime
 import pathlib
 import time
+from typing import cast
 
 import herkules.HerkulesTypes as Types
 from herkules.Herkules import herkules, herkules_diff_run
@@ -65,12 +66,14 @@ contents = herkules(
     add_metadata=ADD_METADATA,
 )
 
+contents = cast(Types.EntryList, contents)
+
 print()
 print('Found files:')
 print()
 
 for entry in contents:
-    entry_path = entry['path']  # type: ignore
+    entry_path = entry['path']
     print(f'* {entry_path}')
 print()
 
@@ -79,19 +82,19 @@ del contents[3]
 del contents[12]
 
 # modify a file
-contents[1]['path'].touch(exist_ok=True)  # type: ignore
+contents[1]['path'].touch(exist_ok=True)
 
 # fake deletion of file
-deleted_file = {
+deleted_file: Types.HerkulesEntry = {
     'path': pathlib.Path('tests/trash/~deleted.txt'),
     'mtime': time.time(),
 }
 
-contents.append(deleted_file)  # type: ignore
+contents.append(deleted_file)
 
 # %% Find differences between former run and current state
 differing_entries = herkules_diff_run(
-    original_entries=contents,  # type: ignore
+    original_entries=contents,
     root_directory=ROOT_DIRECTORY,
     directories_first=DIRECTORIES_FIRST,
     include_directories=INCLUDE_DIRECTORIES,
@@ -107,7 +110,7 @@ for category in differing_entries:
     print(f'[{category}]')
 
     for entry in differing_entries[category]:  # type: ignore
-        entry_path = entry['path']  # type: ignore
+        entry_path = entry['path']
         print(f'* {entry_path}')
 
 print()
