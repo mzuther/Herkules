@@ -52,6 +52,21 @@ import src.herkules.HerkulesTypes as Types
 __version__ = '1.2.1'
 
 
+def _is_modified(
+    modified_since: Types.ModificationTime,
+    modification_time_in_seconds: Types.ModificationTime,
+) -> bool:
+    # mtime shall not be checked
+    if modified_since is None:
+        return True
+
+    # can only be None if "modified_since" is also None
+    assert modification_time_in_seconds is not None
+
+    # has file or directory been modified?
+    return modification_time_in_seconds >= modified_since
+
+
 def _is_directory_included(
     current_path: pathlib.Path,
     dir_entry: os.DirEntry[str],
@@ -67,14 +82,9 @@ def _is_directory_included(
     if current_path.name in selector['excluded_directory_names']:
         return False
 
-    # include all directories
-    if modified_since is None:
-        return True
-
-    # has directory been modified?
-    return (
-        modification_time_in_seconds is None
-        or modification_time_in_seconds >= modified_since
+    return _is_modified(
+        modified_since,
+        modification_time_in_seconds,
     )
 
 
@@ -101,14 +111,9 @@ def _is_file_included(
     else:
         return False
 
-    # include all files
-    if modified_since is None:
-        return True
-
-    # has file been modified?
-    return (
-        modification_time_in_seconds is None
-        or modification_time_in_seconds >= modified_since
+    return _is_modified(
+        modified_since,
+        modification_time_in_seconds,
     )
 
 
