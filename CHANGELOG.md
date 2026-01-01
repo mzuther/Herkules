@@ -14,6 +14,23 @@ happens._
 
 <!--- ---------------------------------------------------------------------- -->
 
+## 1.2.2 - 2026-01-01
+
+### Added
+
+- add type information to tests
+
+### Changed
+
+- refactor code and tests
+- run `mypy` when executing lint script
+
+### Fixed
+
+- fix broken main script (move source directory)
+
+<!--- ---------------------------------------------------------------------- -->
+
 ## 1.2.1 - 2025-12-31
 
 ### Added
