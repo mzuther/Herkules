@@ -68,7 +68,7 @@ filing bug reports or contributing to this project. Thanks!
 
 ## License
 
-Copyright (c) 2022-2025 [Martin Zuther](https://www.mzuther.de/)
+Copyright (c) 2022-2026 [Martin Zuther](https://www.mzuther.de/)
 
 This program is free software and licensed under the terms of the [BSD 3-Clause
 License](./LICENSE.md).
