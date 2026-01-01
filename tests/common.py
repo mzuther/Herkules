@@ -1,6 +1,7 @@
 import difflib
 import pathlib
 import sys
+from typing import cast
 
 import pytest
 
@@ -47,10 +48,12 @@ for entry in TEST_FILES:
 class TestCommon:
     def assert_herkules_absolute(
         self,
-        root_path,
-        expected_files,
-        actual_paths,
-    ):
+        root_path: pathlib.Path,
+        expected_files: list[str],
+        actual_paths: Types.EntryList | Types.EntryListFlattened,
+    ) -> None:
+        actual_paths = cast(Types.EntryListFlattened, actual_paths)
+
         actual_paths_relative = []
         for actual_path in actual_paths:
             actual_path_relative = actual_path.relative_to(root_path)
@@ -65,14 +68,10 @@ class TestCommon:
 
     def assert_herkules_relative(
         self,
-        expected_files,
-        actual_paths,
-    ):
-        for actual_path in actual_paths:
-            assert isinstance(
-                actual_path,
-                pathlib.Path,
-            )
+        expected_files: list[str],
+        actual_paths: Types.EntryList | Types.EntryListFlattened,
+    ) -> None:
+        actual_paths = cast(Types.EntryListFlattened, actual_paths)
 
         # force identical output, regardless of operating system
         actual_files = [str(pathlib.Path(f)) for f in actual_paths]
@@ -80,12 +79,12 @@ class TestCommon:
 
         if actual_files != expected_files:  # pragma: no coverage
             # force well-formatted diff output
-            expected_files = '\n'.join(expected_files) + '\n'
-            actual_files = '\n'.join(actual_files) + '\n'
+            expected_files_joined = '\n'.join(expected_files) + '\n'
+            actual_files_joined = '\n'.join(actual_files) + '\n'
 
             diff_result = difflib.unified_diff(
-                expected_files.splitlines(keepends=True),
-                actual_files.splitlines(keepends=True),
+                expected_files_joined.splitlines(keepends=True),
+                actual_files_joined.splitlines(keepends=True),
                 fromfile='EXPECTED',
                 tofile='ACTUAL',
             )
@@ -101,13 +100,13 @@ class TestCommon:
 
     def create_herkules_entry_from_path(
         self,
-        absolute_path,
-        root_directory,
-    ):
+        absolute_path: pathlib.Path,
+        root_directory: pathlib.Path,
+    ) -> Types.HerkulesEntry:
         stat_result = absolute_path.stat(follow_symlinks=True)
         modification_time_in_seconds = stat_result.st_mtime_ns / 1e9
 
-        entry = {
+        entry: Types.HerkulesEntry = {
             'path': pathlib.Path(
                 absolute_path.relative_to(root_directory),
             ),
