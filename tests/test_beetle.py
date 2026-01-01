@@ -12,9 +12,11 @@ import json
 import os
 import pathlib
 import time
+from typing import cast
 
 import pytest
 
+import herkules.HerkulesTypes as Types
 from herkules.Herkules import herkules, herkules_diff, herkules_diff_run
 from tests.common import TestCommon
 
@@ -59,8 +61,8 @@ for entry in TEST_FILES:
 
 
 def set_mtime_to_current_time(
-    dir_path,
-):
+    dir_path: pathlib.Path,
+) -> float:
     current_epoch = time.time()
 
     for path_in_directory in herkules(
@@ -68,6 +70,8 @@ def set_mtime_to_current_time(
         include_directories=True,
         relative_to_root=False,
     ):
+        assert isinstance(path_in_directory, pathlib.Path)
+
         os.utime(
             path_in_directory,
             times=(current_epoch, current_epoch),
@@ -80,8 +84,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_default_options(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         actual_paths = herkules(
             datafiles,
             relative_to_root=True,
@@ -96,8 +100,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_directories_in_between(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         actual_paths = herkules(
             datafiles,
             directories_first=False,
@@ -115,8 +119,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_directories_included(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         actual_paths = herkules(
             datafiles,
             include_directories=True,
@@ -133,8 +137,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_directories_included_absolute(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         actual_paths = herkules(
             datafiles,
             include_directories=True,
@@ -152,8 +156,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_directories_included_in_between(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         actual_paths = herkules(
             datafiles,
             include_directories=True,
@@ -172,9 +176,9 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_selector_empty(
         self,
-        datafiles,
-    ):
-        SELECTOR = {
+        datafiles: pathlib.Path,
+    ) -> None:
+        SELECTOR: Types.Selector = {
             'excluded_directory_names': [],
             'excluded_file_names': [],
             'included_file_names': [],
@@ -195,8 +199,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_included_files_star_1(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'excluded_file_names': [],
@@ -220,8 +224,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_included_files_star_2(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'included_file_names': [
                 '*',
@@ -244,8 +248,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_included_files_1(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'included_file_names': [
                 '*.txt',
@@ -267,8 +271,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_included_files_2(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'included_file_names': [
                 '*.txt',
@@ -295,8 +299,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_included_files_3(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'included_file_names': [
                 '*.txt',
@@ -324,8 +328,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_included_files_4(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'included_file_names': [
                 '*.ext',
@@ -338,14 +342,17 @@ class TestBeetle(TestCommon):
             relative_to_root=True,
         )
 
-        expected_files = []
+        expected_files: list[str] = []
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
         )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
-    def test_included_files_6(self, datafiles):
+    def test_included_files_6(
+        self,
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'included_file_names': [
@@ -368,8 +375,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_directories_1(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [
                 'dir.ext',
@@ -395,8 +402,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_directories_2(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [
                 'dir.ext',
@@ -426,8 +433,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_files_1(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'excluded_file_names': [
@@ -453,8 +460,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_files_2(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'excluded_file_names': [
@@ -478,8 +485,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_files_3(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'excluded_file_names': [
@@ -505,8 +512,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_files_4(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'excluded_file_names': [
@@ -536,8 +543,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_files_5(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'excluded_file_names': [
@@ -561,8 +568,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_files_6(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'excluded_file_names': [
@@ -588,8 +595,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_files_7(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'excluded_file_names': [
@@ -615,8 +622,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_files_8(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'excluded_file_names': [
@@ -642,8 +649,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_excluded_files_9(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         SELECTOR = {
             'excluded_directory_names': [],
             'excluded_file_names': [
@@ -667,8 +674,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_modified_1(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         modified_since = set_mtime_to_current_time(datafiles)
 
         actual_paths = herkules(
@@ -687,8 +694,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_modified_1_in_between_directories(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         modified_since = set_mtime_to_current_time(datafiles)
 
         actual_paths = herkules(
@@ -710,8 +717,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_modified_2(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         # wait for fixture data to settle down
         modified_since = datetime.datetime.now() + datetime.timedelta(
             seconds=1
@@ -724,7 +731,7 @@ class TestBeetle(TestCommon):
             relative_to_root=True,
         )
 
-        expected_files = []
+        expected_files: list[str] = []
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -734,8 +741,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_modified_3(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         # wait for fixture data to settle down
         modified_since = datetime.datetime.now() + datetime.timedelta(
             seconds=0.5
@@ -767,14 +774,19 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_added_metadata(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         actual_paths_with_metadata = herkules(
             datafiles,
             include_directories=True,
             directories_first=True,
             relative_to_root=True,
             add_metadata=True,
+        )
+
+        actual_paths_with_metadata = cast(
+            Types.EntryList,
+            actual_paths_with_metadata,
         )
 
         for entry in actual_paths_with_metadata:
@@ -791,8 +803,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_no_changes(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         original_paths = herkules(
             datafiles,
             relative_to_root=True,
@@ -821,8 +833,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_error_handling_no_entries_1(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         correct_paths = herkules(
             datafiles,
             add_metadata=True,
@@ -844,8 +856,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_error_handling_no_entries_2(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         correct_paths = herkules(
             datafiles,
             add_metadata=True,
@@ -865,8 +877,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_error_handling_no_metadata_1(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         correct_paths = herkules(
             datafiles,
             add_metadata=True,
@@ -891,8 +903,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_error_handling_no_metadata_2(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         correct_paths = herkules(
             datafiles,
             add_metadata=True,
@@ -917,8 +929,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_no_changes_with_folders(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         original_paths = herkules(
             datafiles,
             relative_to_root=True,
@@ -951,8 +963,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_create_file(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         original_paths = herkules(
             datafiles,
             relative_to_root=True,
@@ -985,8 +997,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_create_folder(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         original_paths = herkules(
             datafiles,
             relative_to_root=True,
@@ -1029,8 +1041,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_create_folder_separate_run(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         original_paths = herkules(
             datafiles,
             relative_to_root=True,
@@ -1079,8 +1091,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_rename_file(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         original_paths = herkules(
             datafiles,
             relative_to_root=True,
@@ -1123,8 +1135,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_delete_file(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         original_paths = herkules(
             datafiles,
             relative_to_root=True,
@@ -1157,8 +1169,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_delete_folder(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         original_paths = herkules(
             datafiles,
             relative_to_root=False,
@@ -1206,8 +1218,8 @@ class TestBeetle(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_modify_file(
         self,
-        datafiles,
-    ):
+        datafiles: pathlib.Path,
+    ) -> None:
         original_paths = herkules(
             datafiles,
             relative_to_root=True,
