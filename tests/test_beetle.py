@@ -15,7 +15,7 @@ import time
 
 import pytest
 
-from src.herkules.Herkules import herkules, herkules_diff, herkules_diff_run
+from herkules.Herkules import herkules, herkules_diff, herkules_diff_run
 from tests.common import TestCommon
 
 FIXTURE_DIR = pathlib.Path('tests') / 'beetle'

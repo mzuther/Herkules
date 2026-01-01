@@ -5,8 +5,8 @@ import datetime
 import pathlib
 import time
 
-import src.herkules.HerkulesTypes as Types
-from src.herkules.Herkules import herkules, herkules_diff_run
+import herkules.HerkulesTypes as Types
+from herkules.Herkules import herkules, herkules_diff_run
 
 # %% Initialization
 # directory to be crawled (can also be a string)

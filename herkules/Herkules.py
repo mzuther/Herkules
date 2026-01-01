@@ -47,9 +47,9 @@ import os
 import pathlib
 import sys
 
-import src.herkules.HerkulesTypes as Types
+import herkules.HerkulesTypes as Types
 
-__version__ = '1.2.1'
+__version__ = '1.2.2'
 
 
 def _is_modified(
