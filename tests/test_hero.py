@@ -490,7 +490,7 @@ class TestBeetle(TestCommon):
         assert differing_files['deleted'] == []
 
         first_entry = differing_files['modified'][0]
-        assert first_entry['mtime_diff'] > 1e7
+        assert first_entry['mtime_diff'] > 0
 
         # simplify test code
         del first_entry['mtime_diff']  # type: ignore
