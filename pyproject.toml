@@ -88,8 +88,6 @@ select = [
     "B",
     # mccabe
     "C90",
-    # flake8-fixme
-    "FIX",
     # isort
     "I",
     # pyupgrade
