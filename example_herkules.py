@@ -4,10 +4,9 @@
 import datetime
 import pathlib
 import time
-from typing import cast
 
 import herkules.HerkulesTypes as Types
-from herkules.Herkules import herkules, herkules_diff_run
+from herkules.Herkules import herkules_diff_run, herkules_with_metadata
 
 # %% Initialization
 # directory to be crawled (can also be a string)
@@ -50,12 +49,11 @@ MODIFIED_SINCE = datetime.datetime(2024, 8, 1, 8, 30, 0)
 # otherwise, return paths relative to "ROOT_DIRECTORY"
 RELATIVE_TO_ROOT = False
 
-# optional: if "False" (default), return list of paths; otherwise, return list
-# of dictonaries with keys "path" and "mtime" (for modification time)
-ADD_METADATA = True
-
 # %% Crawl directory
-contents = herkules(
+
+# get list of dictonaries with keys "path" and "mtime" (modification time);
+# for a simple list of paths, use "herkules()" instead
+contents = herkules_with_metadata(
     root_directory=ROOT_DIRECTORY,
     directories_first=DIRECTORIES_FIRST,
     include_directories=INCLUDE_DIRECTORIES,
@@ -63,10 +61,7 @@ contents = herkules(
     selector=SELECTOR,
     modified_since=MODIFIED_SINCE,
     relative_to_root=RELATIVE_TO_ROOT,
-    add_metadata=ADD_METADATA,
 )
-
-contents = cast(Types.EntryList, contents)
 
 print()
 print('Found files:')
@@ -109,7 +104,7 @@ for category in differing_entries:
     print()
     print(f'[{category}]')
 
-    for entry in differing_entries[category]:  # type: ignore
+    for entry in differing_entries[category]:  # type: ignore  # simplify code
         entry_path = entry['path']
         print(f'* {entry_path}')
 

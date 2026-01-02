@@ -204,7 +204,7 @@ def _convert_dict_of_dicts(
     return result
 
 
-def herkules(
+def herkules_with_metadata(
     root_directory: str | pathlib.Path,
     directories_first: bool = True,
     include_directories: bool = False,
@@ -212,8 +212,8 @@ def herkules(
     selector: Types.Selector | None = None,
     modified_since: datetime.datetime | Types.ModificationTime = None,
     relative_to_root: bool = False,
-    add_metadata: bool = False,
-) -> Types.EntryList | Types.EntryListFlattened:
+    call_stat: bool = True,
+) -> Types.EntryList:
     root_directory, selector, modified_since = _herkules_prepare(
         root_directory=root_directory,
         selector=selector,
@@ -227,23 +227,43 @@ def herkules(
         follow_symlinks=follow_symlinks,
         selector=selector,
         modified_since=modified_since,
-        add_metadata=add_metadata,
+        call_stat=call_stat,
     )
 
-    result: Types.EntryList | Types.EntryListFlattened = found_entries
-
     if relative_to_root:
-        result = _convert_relative_to_root(
+        found_entries = _convert_relative_to_root(
             found_entries,
             root_directory,
         )
 
-    if not add_metadata:
-        result = _convert_flatten_paths(
-            found_entries,
-        )
+    return found_entries
 
-    return result
+
+def herkules(
+    root_directory: str | pathlib.Path,
+    directories_first: bool = True,
+    include_directories: bool = False,
+    follow_symlinks: bool = False,
+    selector: Types.Selector | None = None,
+    modified_since: datetime.datetime | Types.ModificationTime = None,
+    relative_to_root: bool = False,
+) -> Types.EntryListFlattened:
+    found_entries = herkules_with_metadata(
+        root_directory=root_directory,
+        directories_first=directories_first,
+        include_directories=include_directories,
+        follow_symlinks=follow_symlinks,
+        selector=selector,
+        modified_since=modified_since,
+        relative_to_root=relative_to_root,
+        call_stat=False,
+    )
+
+    flattened_entries = _convert_flatten_paths(
+        found_entries,
+    )
+
+    return flattened_entries
 
 
 def _herkules_recurse(
@@ -253,14 +273,14 @@ def _herkules_recurse(
     follow_symlinks: bool,
     selector: Types.Selector,
     modified_since: Types.ModificationTime,
-    add_metadata: bool,
+    call_stat: bool,
 ) -> Types.EntryList:
     directories, files = _herkules_process(
         root_directory=root_directory,
         follow_symlinks=follow_symlinks,
         selector=selector,
         modified_since=modified_since,
-        add_metadata=add_metadata,
+        call_stat=call_stat,
     )
 
     # sort results
@@ -282,7 +302,7 @@ def _herkules_recurse(
             follow_symlinks=follow_symlinks,
             selector=selector,
             modified_since=modified_since,
-            add_metadata=add_metadata,
+            call_stat=call_stat,
         )
 
         if include_directories:
@@ -301,7 +321,7 @@ def _herkules_process(
     follow_symlinks: bool,
     selector: Types.Selector,
     modified_since: Types.ModificationTime,
-    add_metadata: bool,
+    call_stat: bool,
 ) -> tuple[Types.EntryList, Types.EntryList]:
     directories: Types.EntryList = []
     files: Types.EntryList = []
@@ -312,7 +332,7 @@ def _herkules_process(
         current_path = root_directory / dir_entry.name
 
         # "stat" is costly
-        if add_metadata or modified_since:
+        if call_stat or modified_since:
             # only include paths modified after a given date; get timestamp of
             # linked path, not of symlink
             stat_result = dir_entry.stat(follow_symlinks=True)
@@ -367,17 +387,14 @@ def herkules_diff_run(
     selector: Types.Selector | None = None,
     relative_to_root: bool = False,
 ) -> Types.DiffResult:
-    actual_entries = herkules(
+    actual_entries = herkules_with_metadata(
         root_directory=root_directory,
         directories_first=directories_first,
         include_directories=include_directories,
         follow_symlinks=follow_symlinks,
         selector=selector,
         relative_to_root=relative_to_root,
-        add_metadata=True,
     )
-
-    actual_entries = cast(Types.EntryList, actual_entries)
 
     differing_entries = herkules_diff(
         original_entries,

@@ -11,12 +11,11 @@ import datetime
 import os
 import pathlib
 import time
-from typing import cast
 
 import pytest
 
 import herkules.HerkulesTypes as Types
-from herkules.Herkules import herkules
+from herkules.Herkules import herkules, herkules_with_metadata
 from tests.common import TEST_FILES, TEST_FILES_AND_DIRS, TestCommon
 
 FIXTURE_DIR = pathlib.Path('tests') / 'beetle'
@@ -32,8 +31,6 @@ def set_mtime_to_current_time(
         include_directories=True,
         relative_to_root=False,
     ):
-        assert isinstance(path_in_directory, pathlib.Path)
-
         os.utime(
             path_in_directory,
             times=(current_epoch, current_epoch),
@@ -54,6 +51,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = TEST_FILES
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -91,6 +89,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = TEST_FILES_AND_DIRS
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -109,6 +108,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = TEST_FILES_AND_DIRS
+
         self.assert_herkules_absolute(
             datafiles,
             expected_files,
@@ -153,6 +153,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = TEST_FILES
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -178,6 +179,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = TEST_FILES
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -202,6 +204,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = TEST_FILES
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -225,6 +228,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = [f for f in TEST_FILES if f.endswith('.txt')]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -253,6 +257,7 @@ class TestBeetle(TestCommon):
             for f in TEST_FILES
             if f.endswith('.txt') or f.endswith('.longext')
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -282,6 +287,7 @@ class TestBeetle(TestCommon):
             for f in TEST_FILES
             if f.endswith('.txt') or f.endswith('.longext')
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -305,6 +311,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files: list[str] = []
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -329,6 +336,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = [f for f in TEST_FILES if f.endswith('normal.txt')]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -356,6 +364,7 @@ class TestBeetle(TestCommon):
         expected_files = [
             f for f in TEST_FILES if not f.startswith('dir.ext/')
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -387,6 +396,7 @@ class TestBeetle(TestCommon):
             for f in TEST_FILES
             if not f.startswith('dir.ext/') and not f.endswith('.hidden.txt')
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -414,6 +424,7 @@ class TestBeetle(TestCommon):
         expected_files = [
             f for f in TEST_FILES if not f.endswith('normal.txt')
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -439,6 +450,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = [f for f in TEST_FILES if not f.endswith('.hidden')]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -466,6 +478,7 @@ class TestBeetle(TestCommon):
         expected_files = [
             f for f in TEST_FILES if not f.endswith('.hidden.txt')
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -497,6 +510,7 @@ class TestBeetle(TestCommon):
             for f in TEST_FILES
             if f.endswith('.txt') and not f.endswith('.hidden.txt')
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -522,6 +536,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = TEST_FILES
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -549,6 +564,7 @@ class TestBeetle(TestCommon):
         expected_files = [
             f for f in TEST_FILES if not f.endswith('normal.txt')
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -576,6 +592,7 @@ class TestBeetle(TestCommon):
         expected_files = [
             f for f in TEST_FILES if not f.endswith('.hidden.txt')
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -603,6 +620,7 @@ class TestBeetle(TestCommon):
         expected_files = [
             f for f in TEST_FILES if not f.endswith('dir.ext/.hidden.txt')
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -628,6 +646,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = TEST_FILES
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -648,6 +667,7 @@ class TestBeetle(TestCommon):
         )
 
         expected_files = TEST_FILES_AND_DIRS
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -728,6 +748,7 @@ class TestBeetle(TestCommon):
             'new.dir',
             'new.dir/new.file.txt',
         ]
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,
@@ -738,17 +759,11 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        actual_paths_with_metadata = herkules(
+        actual_paths_with_metadata = herkules_with_metadata(
             datafiles,
             include_directories=True,
             directories_first=True,
             relative_to_root=True,
-            add_metadata=True,
-        )
-
-        actual_paths_with_metadata = cast(
-            Types.EntryList,
-            actual_paths_with_metadata,
         )
 
         for entry in actual_paths_with_metadata:
@@ -757,6 +772,7 @@ class TestBeetle(TestCommon):
         actual_paths = [entry['path'] for entry in actual_paths_with_metadata]
 
         expected_files = TEST_FILES_AND_DIRS
+
         self.assert_herkules_relative(
             expected_files,
             actual_paths,

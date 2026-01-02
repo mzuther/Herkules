@@ -1,7 +1,6 @@
 import difflib
 import pathlib
 import sys
-from typing import cast
 
 import pytest
 
@@ -50,10 +49,8 @@ class TestCommon:
         self,
         root_path: pathlib.Path,
         expected_files: list[str],
-        actual_paths: Types.EntryList | Types.EntryListFlattened,
+        actual_paths: Types.EntryListFlattened,
     ) -> None:
-        actual_paths = cast(Types.EntryListFlattened, actual_paths)
-
         actual_paths_relative = []
         for actual_path in actual_paths:
             actual_path_relative = actual_path.relative_to(root_path)
@@ -69,10 +66,8 @@ class TestCommon:
     def assert_herkules_relative(
         self,
         expected_files: list[str],
-        actual_paths: Types.EntryList | Types.EntryListFlattened,
+        actual_paths: Types.EntryListFlattened,
     ) -> None:
-        actual_paths = cast(Types.EntryListFlattened, actual_paths)
-
         # force identical output, regardless of operating system
         actual_files = [str(pathlib.Path(f)) for f in actual_paths]
         expected_files = [str(pathlib.Path(f)) for f in expected_files]

@@ -9,27 +9,30 @@
 
 import json
 import pathlib
-from typing import cast
 
 import pytest
 
 import herkules.HerkulesTypes as Types
-from herkules.Herkules import herkules, herkules_diff, herkules_diff_run
+from herkules.Herkules import (
+    herkules,
+    herkules_diff,
+    herkules_diff_run,
+    herkules_with_metadata,
+)
 from tests.common import TEST_FILES, TestCommon
 
 FIXTURE_DIR = pathlib.Path('tests') / 'beetle'
 
 
-class TestBeetle(TestCommon):
+class TestHero(TestCommon):
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_no_changes(
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        original_paths = herkules(
+        original_paths = herkules_with_metadata(
             datafiles,
             relative_to_root=True,
-            add_metadata=True,
         )
 
         # simulate loading original files from storage (paths as *strings*)
@@ -56,12 +59,10 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        correct_paths = herkules(
+        correct_paths = herkules_with_metadata(
             datafiles,
-            add_metadata=True,
         )
 
-        correct_paths = cast(Types.EntryList, correct_paths)
         no_paths: Types.EntryList = []
 
         with pytest.raises(ValueError) as exc_info:
@@ -80,12 +81,10 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        correct_paths = herkules(
+        correct_paths = herkules_with_metadata(
             datafiles,
-            add_metadata=True,
         )
 
-        correct_paths = cast(Types.EntryList, correct_paths)
         no_paths: Types.EntryList = []
 
         with pytest.raises(ValueError) as exc_info:
@@ -102,22 +101,17 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        correct_paths = herkules(
+        correct_paths = herkules_with_metadata(
             datafiles,
-            add_metadata=True,
         )
 
         flattened_paths = herkules(
             datafiles,
-            add_metadata=False,
         )
-
-        correct_paths = cast(Types.EntryList, correct_paths)
-        flattened_paths = cast(Types.EntryList, flattened_paths)
 
         with pytest.raises(ValueError) as exc_info:
             herkules_diff(
-                flattened_paths,
+                flattened_paths,  # type: ignore  # mismatch is test objective
                 correct_paths,
                 datafiles,
             )
@@ -131,23 +125,18 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        correct_paths = herkules(
+        correct_paths = herkules_with_metadata(
             datafiles,
-            add_metadata=True,
         )
 
         flattened_paths = herkules(
             datafiles,
-            add_metadata=False,
         )
-
-        correct_paths = cast(Types.EntryList, correct_paths)
-        flattened_paths = cast(Types.EntryList, flattened_paths)
 
         with pytest.raises(ValueError) as exc_info:
             herkules_diff(
                 correct_paths,
-                flattened_paths,
+                flattened_paths,  # type: ignore  # mismatch is test objective
                 datafiles,
             )
 
@@ -160,12 +149,11 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        original_paths = herkules(
+        original_paths = herkules_with_metadata(
             datafiles,
             relative_to_root=True,
             include_directories=True,
             directories_first=True,
-            add_metadata=True,
         )
 
         # simulate loading original files from storage (paths as *strings*)
@@ -194,13 +182,10 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        original_paths = herkules(
+        original_paths = herkules_with_metadata(
             datafiles,
             relative_to_root=True,
-            add_metadata=True,
         )
-
-        original_paths = cast(Types.EntryList, original_paths)
 
         # create file
         created_path = datafiles / 'this.is/a_present'
@@ -230,15 +215,12 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        original_paths = herkules(
+        original_paths = herkules_with_metadata(
             datafiles,
             relative_to_root=True,
             include_directories=True,
             directories_first=True,
-            add_metadata=True,
         )
-
-        original_paths = cast(Types.EntryList, original_paths)
 
         # create file
         created_path = datafiles / 'this.is/a_present'
@@ -276,12 +258,11 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        original_paths = herkules(
+        original_paths = herkules_with_metadata(
             datafiles,
             relative_to_root=True,
             include_directories=True,
             directories_first=False,
-            add_metadata=True,
         )
 
         # create file
@@ -299,16 +280,12 @@ class TestBeetle(TestCommon):
             root_directory=datafiles,
         )
 
-        actual_paths = herkules(
+        actual_paths = herkules_with_metadata(
             datafiles,
             relative_to_root=True,
             include_directories=True,
             directories_first=True,
-            add_metadata=True,
         )
-
-        original_paths = cast(Types.EntryList, original_paths)
-        actual_paths = cast(Types.EntryList, actual_paths)
 
         differing_files = herkules_diff(
             original_paths,
@@ -329,13 +306,10 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        original_paths = herkules(
+        original_paths = herkules_with_metadata(
             datafiles,
             relative_to_root=True,
-            add_metadata=True,
         )
-
-        original_paths = cast(Types.EntryList, original_paths)
 
         renamed_path_original = datafiles / TEST_FILES[11]
         renamed_path_current = datafiles / 'moved.to/new.home'
@@ -375,13 +349,10 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        original_paths = herkules(
+        original_paths = herkules_with_metadata(
             datafiles,
             relative_to_root=True,
-            add_metadata=True,
         )
-
-        original_paths = cast(Types.EntryList, original_paths)
 
         deleted_path = datafiles / TEST_FILES[6]
 
@@ -411,15 +382,12 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        original_paths = herkules(
+        original_paths = herkules_with_metadata(
             datafiles,
             relative_to_root=False,
             include_directories=True,
             directories_first=False,
-            add_metadata=True,
         )
-
-        original_paths = cast(Types.EntryList, original_paths)
 
         deleted_folder_name = 'dir.ext'
         deleted_folder_path = datafiles / deleted_folder_name
@@ -462,13 +430,10 @@ class TestBeetle(TestCommon):
         self,
         datafiles: pathlib.Path,
     ) -> None:
-        original_paths = herkules(
+        original_paths = herkules_with_metadata(
             datafiles,
             relative_to_root=True,
-            add_metadata=True,
         )
-
-        original_paths = cast(Types.EntryList, original_paths)
 
         modified_path = datafiles / TEST_FILES[15]
 
@@ -493,7 +458,7 @@ class TestBeetle(TestCommon):
         assert first_entry['mtime_diff'] > 0
 
         # simplify test code
-        del first_entry['mtime_diff']  # type: ignore
+        del first_entry['mtime_diff']  # type: ignore  # simplify code
 
         assert differing_files['modified'] == [
             modified_entry,
