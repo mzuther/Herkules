@@ -81,7 +81,7 @@ class Herkules:
         )
 
         found_entries = worker_find.find_by_recursion(
-            root_directory=root_directory,
+            current_directory=root_directory,
             directories_first=directories_first,
             include_directories=include_directories,
             follow_symlinks=follow_symlinks,

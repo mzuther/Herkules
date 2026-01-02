@@ -172,7 +172,7 @@ class HerkulesWorkerFind:
 
     def find_by_recursion(
         self,
-        root_directory: pathlib.Path,
+        current_directory: pathlib.Path,
         directories_first: bool,
         include_directories: bool,
         follow_symlinks: bool,
@@ -181,7 +181,7 @@ class HerkulesWorkerFind:
         call_stat: bool,
     ) -> Types.EntryList:
         directories, files = self.process_directory(
-            root_directory=root_directory,
+            directory_path=current_directory,
             follow_symlinks=follow_symlinks,
             selector=selector,
             modified_since=modified_since,
@@ -199,9 +199,9 @@ class HerkulesWorkerFind:
             found_entries.extend(files)
 
         # recurse
-        for current_directory in directories:
+        for directory in directories:
             deep_found_entries = self.find_by_recursion(
-                root_directory=current_directory.path,
+                current_directory=directory.path,
                 directories_first=directories_first,
                 include_directories=include_directories,
                 follow_symlinks=follow_symlinks,
@@ -211,7 +211,7 @@ class HerkulesWorkerFind:
             )
 
             if include_directories:
-                found_entries.append(current_directory)
+                found_entries.append(directory)
 
             found_entries.extend(deep_found_entries)
 
@@ -222,7 +222,7 @@ class HerkulesWorkerFind:
 
     def process_directory(
         self,
-        root_directory: pathlib.Path,
+        directory_path: pathlib.Path,
         follow_symlinks: bool,
         selector: Types.Selector,
         modified_since: Types.ModificationTime,
@@ -233,8 +233,8 @@ class HerkulesWorkerFind:
 
         # "os.scandir" minimizes system calls (including the retrieval of
         # timestamps)
-        for dir_entry in os.scandir(root_directory):
-            current_path = root_directory / dir_entry.name
+        for dir_entry in os.scandir(directory_path):
+            current_path = directory_path / dir_entry.name
 
             # "stat" is costly
             if call_stat or modified_since:
