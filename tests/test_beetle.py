@@ -767,9 +767,9 @@ class TestBeetle(TestCommon):
         )
 
         for entry in actual_paths_with_metadata:
-            assert isinstance(entry['mtime'], float)
+            assert isinstance(entry.mtime, float)
 
-        actual_paths = [entry['path'] for entry in actual_paths_with_metadata]
+        actual_paths = [entry.path for entry in actual_paths_with_metadata]
 
         expected_files = TEST_FILES_AND_DIRS
 

@@ -101,11 +101,11 @@ class TestCommon:
         stat_result = absolute_path.stat(follow_symlinks=True)
         modification_time_in_seconds = stat_result.st_mtime_ns / 1e9
 
-        entry: Types.HerkulesEntry = {
-            'path': pathlib.Path(
+        entry = Types.HerkulesEntry(
+            path=pathlib.Path(
                 absolute_path.relative_to(root_directory),
             ),
-            'mtime': modification_time_in_seconds,
-        }
+            mtime=modification_time_in_seconds,
+        )
 
         return entry

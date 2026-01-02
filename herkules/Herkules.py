@@ -46,7 +46,7 @@ import operator
 import os
 import pathlib
 import sys
-from typing import cast
+from typing import Any
 
 import herkules.HerkulesTypes as Types
 
@@ -164,8 +164,8 @@ def _convert_relative_to_root(
     # creating a new list should be faster than modifying the existing one
     # in-place
     for entry in entries:
-        entry['path'] = pathlib.Path(
-            entry['path'].relative_to(root_directory),
+        entry.path = pathlib.Path(
+            entry.path.relative_to(root_directory),
         )
 
         entries_relative.append(entry)
@@ -176,32 +176,38 @@ def _convert_relative_to_root(
 def _convert_flatten_paths(
     entries: Types.EntryList,
 ) -> Types.EntryListFlattened:
-    flattened_entries = [entry['path'] for entry in entries]
+    flattened_entries = [entry.path for entry in entries]
 
     return flattened_entries
 
 
 def _convert_dict_of_dicts(
-    entries: Types.EntryList,
+    entries: Types.EntryList | Types.EntryListJSON,
     root_directory: pathlib.Path,
 ) -> Types.DictOfEntries:
     sorted_entries = sorted(
         entries,
-        key=lambda k: str(k['path']),
+        key=lambda k: str(operator.attrgetter('path')),
     )
 
-    result = {}
-    for entry in sorted_entries:
-        current_path = entry['path']
-        current_mtime = cast(float, entry['mtime'])
+    entries_as_dict: Types.DictOfEntries = {}
+    for entry_original in sorted_entries:
+        if isinstance(entry_original, Types.HerkulesEntry):
+            entry = entry_original
+        else:
+            assert isinstance(entry_original, dict), (
+                f'wrong type {type(entry_original)}'
+            )
 
-        entry['path'] = current_path
-        entry['mtime'] = current_mtime
+            entry = Types.HerkulesEntry(
+                path=entry_original['path'],
+                mtime=entry_original['mtime'],
+            )
 
-        entry_id = str(current_path)
-        result[entry_id] = entry
+        entry_id = str(entry.path)
+        entries_as_dict[entry_id] = entry
 
-    return result
+    return entries_as_dict
 
 
 def herkules_with_metadata(
@@ -284,8 +290,8 @@ def _herkules_recurse(
     )
 
     # sort results
-    directories.sort(key=operator.itemgetter('path'))
-    files.sort(key=operator.itemgetter('path'))
+    directories.sort(key=operator.attrgetter('path'))
+    files.sort(key=operator.attrgetter('path'))
 
     # collect results
     found_entries = []
@@ -296,7 +302,7 @@ def _herkules_recurse(
     # recurse
     for current_directory in directories:
         deep_found_entries = _herkules_recurse(
-            root_directory=current_directory['path'],
+            root_directory=current_directory.path,
             directories_first=directories_first,
             include_directories=include_directories,
             follow_symlinks=follow_symlinks,
@@ -354,10 +360,10 @@ def _herkules_process(
             modification_time_in_seconds=modification_time_in_seconds,
         ):
             directories.append(
-                {
-                    'path': current_path,
-                    'mtime': modification_time_in_seconds,
-                }
+                Types.HerkulesEntry(
+                    path=current_path,
+                    mtime=modification_time_in_seconds,
+                )
             )
         # process files
         elif _is_file_included(
@@ -369,17 +375,17 @@ def _herkules_process(
             modification_time_in_seconds=modification_time_in_seconds,
         ):
             files.append(
-                {
-                    'path': current_path,
-                    'mtime': modification_time_in_seconds,
-                }
+                Types.HerkulesEntry(
+                    path=current_path,
+                    mtime=modification_time_in_seconds,
+                )
             )
 
     return directories, files
 
 
 def herkules_diff_run(
-    original_entries: Types.EntryList,
+    original_entries: Types.EntryList | Types.EntryListJSON,
     root_directory: str | pathlib.Path,
     directories_first: bool = True,
     include_directories: bool = False,
@@ -405,32 +411,40 @@ def herkules_diff_run(
     return differing_entries
 
 
-def _herkules_diff_prepare(
-    original_entries: Types.EntryList,
-    actual_entries: Types.EntryList,
-    root_directory: str | pathlib.Path,
-) -> tuple[Types.DictOfEntries, Types.DictOfEntries]:
+def _herkules_type_check(
+    entries: Any,
+    variable_name: str,
+) -> None:
     # entries must exist
-    if len(original_entries) < 1:
-        raise ValueError('"original_entries" contains no entries')
-
-    if len(actual_entries) < 1:
-        raise ValueError('"actual_entries" contains no entries')
+    if len(entries) < 1:
+        raise ValueError(f'"{variable_name}" contains no entries')
 
     # entries must contain metadata; this should catch most issues without
     # impacting performance
-    original_entry = original_entries[0]
-    actual_entry = actual_entries[0]
+    entry = entries[0]
+    contains_metadata = False
 
-    if not (isinstance(original_entry, dict) and 'mtime' in original_entry):
-        raise ValueError('"original_entries" contains no metadata')
+    if isinstance(entry, Types.HerkulesEntry):
+        contains_metadata = True
 
-    if not (isinstance(actual_entry, dict) and 'mtime' in actual_entry):
-        raise ValueError('"actual_entries" contains no metadata')
+    if isinstance(entry, dict):
+        contains_metadata = 'path' in entry and 'mtime' in entry
 
+    if not contains_metadata:
+        raise ValueError(f'"{variable_name}" has wrong type {type(entry)}')
+
+
+def _herkules_diff_prepare(
+    original_entries: Types.EntryList | Types.EntryListJSON,
+    actual_entries: Types.EntryList | Types.EntryListJSON,
+    root_directory: str | pathlib.Path,
+) -> tuple[Types.DictOfEntries, Types.DictOfEntries]:
     root_directory = pathlib.Path(
         root_directory,
     )
+
+    _herkules_type_check(original_entries, 'original_entries')
+    _herkules_type_check(actual_entries, 'actual_entries')
 
     original_paths = _convert_dict_of_dicts(
         original_entries,
@@ -446,14 +460,14 @@ def _herkules_diff_prepare(
 
 
 def herkules_diff(
-    original_entries_list: Types.EntryList,
-    actual_entries_list: Types.EntryList,
+    original_entries_list: Types.EntryList | Types.EntryListJSON,
+    actual_entries_list: Types.EntryList | Types.EntryListJSON,
     root_directory: str | pathlib.Path,
 ) -> Types.DiffResult:
-    original_entries, actual_entries = _herkules_diff_prepare(
-        original_entries_list,
-        actual_entries_list,
-        root_directory,
+    original_entries_dict, actual_entries_dict = _herkules_diff_prepare(
+        original_entries=original_entries_list,
+        actual_entries=actual_entries_list,
+        root_directory=root_directory,
     )
 
     differing_entries: Types.DiffResult = {
@@ -462,34 +476,29 @@ def herkules_diff(
         'deleted': [],
     }
 
-    for entry_id, original_entry in original_entries.items():
+    for entry_id, original_entry in original_entries_dict.items():
         # check for deletion
-        if entry_id not in actual_entries:
+        if entry_id not in actual_entries_dict:
             differing_entries['deleted'].append(original_entry)
         # check for modification
         else:
-            actual_entry = actual_entries[entry_id]
+            actual_entry = actual_entries_dict[entry_id]
 
-            actual_mtime = actual_entry['mtime']
-            original_mtime = original_entry['mtime']
+            assert isinstance(actual_entry.mtime, float)
+            assert isinstance(original_entry.mtime, float)
 
-            assert isinstance(actual_mtime, float)
-            assert isinstance(original_mtime, float)
-
-            if original_mtime != actual_mtime:
-                mtime_diff = actual_mtime - original_mtime
-
-                modified_entry: Types.HerkulesEntryDiff = {
-                    'path': original_entry['path'],
-                    'mtime': original_entry['mtime'],
-                    'mtime_diff': mtime_diff,
-                }
+            if original_entry.mtime != actual_entry.mtime:
+                modified_entry = Types.HerkulesEntryDiff(
+                    path=original_entry.path,
+                    mtime=original_entry.mtime,
+                    mtime_diff=actual_entry.mtime - original_entry.mtime,
+                )
 
                 differing_entries['modified'].append(modified_entry)
 
-    for entry_id, actual_entry in actual_entries.items():
+    for entry_id, actual_entry in actual_entries_dict.items():
         # check for creation
-        if entry_id not in original_entries:
+        if entry_id not in original_entries_dict:
             differing_entries['added'].append(actual_entry)
 
     return differing_entries

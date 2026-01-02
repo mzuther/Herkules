@@ -68,8 +68,7 @@ print('Found files:')
 print()
 
 for entry in contents:
-    entry_path = entry['path']
-    print(f'* {entry_path}')
+    print(f'* {entry.path}')
 print()
 
 # fake creation of two files
@@ -77,13 +76,13 @@ del contents[3]
 del contents[12]
 
 # modify a file
-contents[1]['path'].touch(exist_ok=True)
+contents[1].path.touch(exist_ok=True)
 
 # fake deletion of file
-deleted_file: Types.HerkulesEntry = {
-    'path': pathlib.Path('tests/trash/~deleted.txt'),
-    'mtime': time.time(),
-}
+deleted_file = Types.HerkulesEntry(
+    path=pathlib.Path('tests/trash/~deleted.txt'),
+    mtime=time.time(),
+)
 
 contents.append(deleted_file)
 
@@ -105,7 +104,6 @@ for category in differing_entries:
     print(f'[{category}]')
 
     for entry in differing_entries[category]:  # type: ignore  # simplify code
-        entry_path = entry['path']
-        print(f'* {entry_path}')
+        print(f'* {entry.path}')
 
 print()

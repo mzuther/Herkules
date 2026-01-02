@@ -36,9 +36,11 @@ class TestHero(TestCommon):
         )
 
         # simulate loading original files from storage (paths as *strings*)
-        original_files = json.loads(
+        original_paths_dict = [p.to_dict() for p in original_paths]
+
+        original_files: Types.EntryListJSON = json.loads(
             json.dumps(
-                original_paths,
+                original_paths_dict,
                 default=str,
                 indent=2,
             )
@@ -65,16 +67,15 @@ class TestHero(TestCommon):
 
         no_paths: Types.EntryList = []
 
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(
+            ValueError,
+            match=r'"original_entries" contains no entries',
+        ):
             herkules_diff(
-                no_paths,
-                correct_paths,
-                datafiles,
+                original_entries_list=no_paths,
+                actual_entries_list=correct_paths,
+                root_directory=datafiles,
             )
-
-        assert (
-            exc_info.value.args[0] == '"original_entries" contains no entries'
-        )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_error_handling_no_entries_2(
@@ -87,14 +88,15 @@ class TestHero(TestCommon):
 
         no_paths: Types.EntryList = []
 
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(
+            ValueError,
+            match=r'"actual_entries" contains no entries',
+        ):
             herkules_diff(
-                correct_paths,
-                no_paths,
-                datafiles,
+                original_entries_list=correct_paths,
+                actual_entries_list=no_paths,
+                root_directory=datafiles,
             )
-
-        assert exc_info.value.args[0] == '"actual_entries" contains no entries'
 
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_error_handling_no_metadata_1(
@@ -109,16 +111,16 @@ class TestHero(TestCommon):
             datafiles,
         )
 
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(
+            ValueError,
+            match=r'"original_entries" has wrong type',
+        ):
             herkules_diff(
-                flattened_paths,  # type: ignore  # mismatch is test objective
-                correct_paths,
-                datafiles,
+                # type mismatch is test objective
+                original_entries_list=flattened_paths,  # type: ignore
+                actual_entries_list=correct_paths,
+                root_directory=datafiles,
             )
-
-        assert (
-            exc_info.value.args[0] == '"original_entries" contains no metadata'
-        )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_error_handling_no_metadata_2(
@@ -133,16 +135,16 @@ class TestHero(TestCommon):
             datafiles,
         )
 
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(
+            ValueError,
+            match=r'"actual_entries" has wrong type',
+        ):
             herkules_diff(
-                correct_paths,
-                flattened_paths,  # type: ignore  # mismatch is test objective
-                datafiles,
+                original_entries_list=correct_paths,
+                # type mismatch is test objective
+                actual_entries_list=flattened_paths,  # type: ignore
+                root_directory=datafiles,
             )
-
-        assert (
-            exc_info.value.args[0] == '"actual_entries" contains no metadata'
-        )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
     def test_difference_no_changes_with_folders(
@@ -157,9 +159,11 @@ class TestHero(TestCommon):
         )
 
         # simulate loading original files from storage (paths as *strings*)
-        original_files = json.loads(
+        original_paths_dict = [p.to_dict() for p in original_paths]
+
+        original_files: Types.EntryListJSON = json.loads(
             json.dumps(
-                original_paths,
+                original_paths_dict,
                 default=str,
                 indent=2,
             )
@@ -394,18 +398,16 @@ class TestHero(TestCommon):
 
         deleted_entries = []
         for entry in original_paths:
-            entry_path = entry['path']
-
-            if entry_path.is_dir() and entry_path.name == deleted_folder_name:
+            if entry.path.is_dir() and entry.path.name == deleted_folder_name:
                 deleted_entries.append(entry)
             elif (
-                entry_path.is_file()
-                and entry_path.parent.name == deleted_folder_name
+                entry.path.is_file()
+                and entry.path.parent.name == deleted_folder_name
             ):
                 deleted_entries.append(entry)
 
                 # delete files
-                entry_path.unlink()
+                entry.path.unlink()
 
         # ensure the above code is working correctly
         assert len(deleted_entries) == 5
@@ -437,6 +439,7 @@ class TestHero(TestCommon):
 
         modified_path = datafiles / TEST_FILES[15]
 
+        # use current mtime
         modified_entry = self.create_herkules_entry_from_path(
             modified_path,
             root_directory=datafiles,
@@ -454,12 +457,13 @@ class TestHero(TestCommon):
         assert differing_files['added'] == []
         assert differing_files['deleted'] == []
 
+        # ensure "mtime_diff" is calculated correctly
         first_entry = differing_files['modified'][0]
-        assert first_entry['mtime_diff'] > 0
+        assert first_entry.mtime_diff > 0.0
 
-        # simplify test code
-        del first_entry['mtime_diff']  # type: ignore  # simplify code
+        # ensure remainder of data is correct
+        expected_paths = [modified_entry]
 
-        assert differing_files['modified'] == [
-            modified_entry,
-        ]
+        modified_paths = [p.to_entry() for p in differing_files['modified']]
+
+        assert modified_paths == expected_paths
