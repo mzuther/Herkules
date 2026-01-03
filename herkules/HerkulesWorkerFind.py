@@ -41,7 +41,6 @@
 #
 # ----------------------------------------------------------------------------
 
-import datetime
 import operator
 import os
 import pathlib
@@ -50,6 +49,27 @@ import herkules.HerkulesTypes as Types
 
 
 class HerkulesWorkerFind:
+    selector: Types.Selector
+
+    def __init__(
+        self,
+        selector: Types.Selector | None,
+    ) -> None:
+        if selector is None:
+            selector = {}
+
+        if not selector.get('excluded_directory_names'):
+            selector['excluded_directory_names'] = []
+
+        if not selector.get('excluded_file_names'):
+            selector['excluded_file_names'] = []
+
+        # include all files if no globs are specified
+        if not selector.get('included_file_names'):
+            selector['included_file_names'] = ['*']
+
+        self.selector = selector
+
     def is_path_modified(
         self,
         modified_since: Types.ModificationTime,
@@ -70,7 +90,6 @@ class HerkulesWorkerFind:
         current_path: pathlib.Path,
         dir_entry: os.DirEntry[str],
         follow_symlinks: bool,
-        selector: Types.Selector,
         modified_since: Types.ModificationTime,
         modification_time_in_seconds: Types.ModificationTime,
     ) -> bool:
@@ -78,7 +97,7 @@ class HerkulesWorkerFind:
             return False
 
         # exclude directories
-        if current_path.name in selector['excluded_directory_names']:
+        if current_path.name in self.selector['excluded_directory_names']:
             return False
 
         return self.is_path_modified(
@@ -91,7 +110,6 @@ class HerkulesWorkerFind:
         current_path: pathlib.Path,
         dir_entry: os.DirEntry[str],
         follow_symlinks: bool,
-        selector: Types.Selector,
         modified_since: Types.ModificationTime,
         modification_time_in_seconds: Types.ModificationTime,
     ) -> bool:
@@ -99,12 +117,12 @@ class HerkulesWorkerFind:
             return False
 
         # exclude files
-        for file_name_pattern in selector['excluded_file_names']:
+        for file_name_pattern in self.selector['excluded_file_names']:
             if current_path.match(file_name_pattern):
                 return False
 
         # only include some files
-        for fileglob in selector['included_file_names']:
+        for fileglob in self.selector['included_file_names']:
             if current_path.match(fileglob):
                 break
         else:
@@ -133,57 +151,18 @@ class HerkulesWorkerFind:
 
         return entries_relative
 
-    @staticmethod
-    def prepare_find(
-        root_directory: str | pathlib.Path,
-        selector: Types.Selector | None,
-        modified_since: datetime.datetime | Types.ModificationTime,
-    ) -> tuple[
-        pathlib.Path,
-        Types.Selector,
-        Types.ModificationTime,
-    ]:
-        root_directory = pathlib.Path(
-            root_directory,
-        )
-
-        if selector is None:
-            selector = {}
-
-        if not selector.get('excluded_directory_names'):
-            selector['excluded_directory_names'] = []
-
-        if not selector.get('excluded_file_names'):
-            selector['excluded_file_names'] = []
-
-        # include all files if no globs are specified
-        if not selector.get('included_file_names'):
-            selector['included_file_names'] = ['*']
-
-        # convert to UNIX timestamp
-        if isinstance(modified_since, datetime.datetime):
-            modified_since = modified_since.timestamp()
-
-        return (
-            root_directory,
-            selector,
-            modified_since,
-        )
-
     def find_by_recursion(
         self,
         current_directory: pathlib.Path,
         directories_first: bool,
         include_directories: bool,
         follow_symlinks: bool,
-        selector: Types.Selector,
         modified_since: Types.ModificationTime,
         call_stat: bool,
     ) -> Types.EntryList:
         directories, files = self.process_directory(
             directory_path=current_directory,
             follow_symlinks=follow_symlinks,
-            selector=selector,
             modified_since=modified_since,
             call_stat=call_stat,
         )
@@ -205,7 +184,6 @@ class HerkulesWorkerFind:
                 directories_first=directories_first,
                 include_directories=include_directories,
                 follow_symlinks=follow_symlinks,
-                selector=selector,
                 modified_since=modified_since,
                 call_stat=call_stat,
             )
@@ -224,7 +202,6 @@ class HerkulesWorkerFind:
         self,
         directory_path: pathlib.Path,
         follow_symlinks: bool,
-        selector: Types.Selector,
         modified_since: Types.ModificationTime,
         call_stat: bool,
     ) -> tuple[Types.EntryList, Types.EntryList]:
@@ -254,7 +231,6 @@ class HerkulesWorkerFind:
                 current_path=current_path,
                 dir_entry=dir_entry,
                 follow_symlinks=follow_symlinks,
-                selector=selector,
                 modified_since=modified_since,
                 modification_time_in_seconds=modification_time_in_seconds,
             ):
@@ -269,7 +245,6 @@ class HerkulesWorkerFind:
                 current_path=current_path,
                 dir_entry=dir_entry,
                 follow_symlinks=follow_symlinks,
-                selector=selector,
                 modified_since=modified_since,
                 modification_time_in_seconds=modification_time_in_seconds,
             ):
