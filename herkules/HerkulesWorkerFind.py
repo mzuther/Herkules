@@ -115,8 +115,8 @@ class HerkulesWorkerFind:
             modification_time_in_seconds,
         )
 
+    @staticmethod
     def convert_relative_to_root(
-        self,
         entries: Types.EntryList,
         root_directory: pathlib.Path,
     ) -> Types.EntryList:
@@ -133,8 +133,8 @@ class HerkulesWorkerFind:
 
         return entries_relative
 
+    @staticmethod
     def prepare_find(
-        self,
         root_directory: str | pathlib.Path,
         selector: Types.Selector | None,
         modified_since: datetime.datetime | Types.ModificationTime,

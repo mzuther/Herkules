@@ -72,13 +72,15 @@ class Herkules:
         relative_to_root: bool = False,
         call_stat: bool = True,
     ) -> Types.EntryList:
-        worker_find = HerkulesWorkerFind()
-
-        root_directory, selector, modified_since = worker_find.prepare_find(
-            root_directory=root_directory,
-            selector=selector,
-            modified_since=modified_since,
+        root_directory, selector, modified_since = (
+            HerkulesWorkerFind.prepare_find(
+                root_directory=root_directory,
+                selector=selector,
+                modified_since=modified_since,
+            )
         )
+
+        worker_find = HerkulesWorkerFind()
 
         found_entries = worker_find.find_by_recursion(
             current_directory=root_directory,
@@ -130,12 +132,14 @@ class Herkules:
         original_entries: Types.EntryList | Types.EntryListJSON,
         actual_entries: Types.EntryList | Types.EntryListJSON,
     ) -> Types.DiffResult:
-        worker_diff = HerkulesWorkerDiff()
-
-        original_entries_dict, actual_entries_dict = worker_diff.prepare_diff(
-            original_entries=original_entries,
-            actual_entries=actual_entries,
+        original_entries_dict, actual_entries_dict = (
+            HerkulesWorkerDiff.prepare_diff(
+                original_entries=original_entries,
+                actual_entries=actual_entries,
+            )
         )
+
+        worker_diff = HerkulesWorkerDiff()
 
         differing_entries = worker_diff.diff(
             original_entries=original_entries_dict,

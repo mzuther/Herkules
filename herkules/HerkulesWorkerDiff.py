@@ -48,8 +48,8 @@ import herkules.HerkulesTypes as Types
 
 
 class HerkulesWorkerDiff:
+    @staticmethod
     def convert_to_dict_of_dicts(
-        self,
         entries: Types.EntryList | Types.EntryListJSON,
     ) -> Types.DictOfEntries:
         sorted_entries = sorted(
@@ -76,8 +76,8 @@ class HerkulesWorkerDiff:
 
         return entries_as_dict
 
+    @staticmethod
     def check_list_of_entries(
-        self,
         entries: Any,
         # for testing only
         variable_name: str,
@@ -100,23 +100,29 @@ class HerkulesWorkerDiff:
         if not contains_metadata:
             raise ValueError(f'"{variable_name}" has wrong type {type(entry)}')
 
+    @staticmethod
     def prepare_diff(
-        self,
         original_entries: Types.EntryList | Types.EntryListJSON,
         actual_entries: Types.EntryList | Types.EntryListJSON,
     ) -> tuple[
         Types.DictOfEntries,
         Types.DictOfEntries,
     ]:
-        self.check_list_of_entries(original_entries, 'original_entries')
+        HerkulesWorkerDiff.check_list_of_entries(
+            original_entries,
+            'original_entries',
+        )
 
-        original_entries_dict = self.convert_to_dict_of_dicts(
+        original_entries_dict = HerkulesWorkerDiff.convert_to_dict_of_dicts(
             original_entries,
         )
 
-        self.check_list_of_entries(actual_entries, 'actual_entries')
+        HerkulesWorkerDiff.check_list_of_entries(
+            actual_entries,
+            'actual_entries',
+        )
 
-        actual_entries_dict = self.convert_to_dict_of_dicts(
+        actual_entries_dict = HerkulesWorkerDiff.convert_to_dict_of_dicts(
             actual_entries,
         )
 
