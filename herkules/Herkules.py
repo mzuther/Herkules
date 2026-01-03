@@ -133,18 +133,11 @@ class Herkules:
         original_entries: Types.EntryList | Types.EntryListJSON,
         actual_entries: Types.EntryList | Types.EntryListJSON,
     ) -> Types.DiffResult:
-        original_entries_dict, actual_entries_dict = (
-            HerkulesWorkerDiff.prepare_diff(
-                original_entries=original_entries,
-                actual_entries=actual_entries,
-            )
-        )
-
         worker_diff = HerkulesWorkerDiff()
 
         differing_entries = worker_diff.diff(
-            original_entries=original_entries_dict,
-            actual_entries=actual_entries_dict,
+            original_entries_list=original_entries,
+            actual_entries_list=actual_entries,
         )
 
         return differing_entries
@@ -168,9 +161,11 @@ class Herkules:
             relative_to_root=relative_to_root,
         )
 
-        differing_entries = self.diff(
-            original_entries,
-            actual_entries,
+        worker_diff = HerkulesWorkerDiff()
+
+        differing_entries = worker_diff.diff(
+            original_entries_list=original_entries,
+            actual_entries_list=actual_entries,
         )
 
         return differing_entries

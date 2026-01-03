@@ -130,9 +130,14 @@ class HerkulesWorkerDiff:
 
     def diff(
         self,
-        original_entries: Types.DictOfEntries,
-        actual_entries: Types.DictOfEntries,
+        original_entries_list: Types.EntryList | Types.EntryListJSON,
+        actual_entries_list: Types.EntryList | Types.EntryListJSON,
     ) -> Types.DiffResult:
+        original_entries, actual_entries = self.prepare_diff(
+            original_entries=original_entries_list,
+            actual_entries=actual_entries_list,
+        )
+
         differing_entries: Types.DiffResult = {
             'added': [],
             'modified': [],
