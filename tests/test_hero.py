@@ -74,7 +74,6 @@ class TestHero(TestCommon):
             herkules_diff(
                 original_entries_list=no_paths,
                 actual_entries_list=correct_paths,
-                root_directory=datafiles,
             )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
@@ -95,7 +94,6 @@ class TestHero(TestCommon):
             herkules_diff(
                 original_entries_list=correct_paths,
                 actual_entries_list=no_paths,
-                root_directory=datafiles,
             )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
@@ -119,7 +117,6 @@ class TestHero(TestCommon):
                 # type mismatch is test objective
                 original_entries_list=flattened_paths,  # type: ignore
                 actual_entries_list=correct_paths,
-                root_directory=datafiles,
             )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
@@ -143,7 +140,6 @@ class TestHero(TestCommon):
                 original_entries_list=correct_paths,
                 # type mismatch is test objective
                 actual_entries_list=flattened_paths,  # type: ignore
-                root_directory=datafiles,
             )
 
     @pytest.mark.datafiles(FIXTURE_DIR)
@@ -294,7 +290,6 @@ class TestHero(TestCommon):
         differing_files = herkules_diff(
             original_paths,
             actual_paths,
-            datafiles,
         )
 
         assert differing_files['added'] == [

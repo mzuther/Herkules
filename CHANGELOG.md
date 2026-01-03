@@ -12,6 +12,10 @@ happens._
 
 ## Unreleased
 
+### Changed
+
+- remove unused parameter `root_directory` from `herkules_diff()`
+
 <!--- ---------------------------------------------------------------------- -->
 
 ## 1.2.2 - 2026-01-01

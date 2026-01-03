@@ -129,14 +129,12 @@ class Herkules:
         self,
         original_entries: Types.EntryList | Types.EntryListJSON,
         actual_entries: Types.EntryList | Types.EntryListJSON,
-        root_directory: str | pathlib.Path,
     ) -> Types.DiffResult:
         worker_diff = HerkulesWorkerDiff()
 
         original_entries_dict, actual_entries_dict = worker_diff.prepare_diff(
             original_entries=original_entries,
             actual_entries=actual_entries,
-            root_directory=root_directory,
         )
 
         differing_entries = worker_diff.diff(
@@ -168,7 +166,6 @@ class Herkules:
         differing_entries = self.diff(
             original_entries,
             actual_entries,
-            root_directory,
         )
 
         return differing_entries
@@ -223,14 +220,12 @@ def herkules_with_metadata(
 def herkules_diff(
     original_entries_list: Types.EntryList | Types.EntryListJSON,
     actual_entries_list: Types.EntryList | Types.EntryListJSON,
-    root_directory: str | pathlib.Path,
 ) -> Types.DiffResult:
     herkules = Herkules()
 
     return herkules.diff(
         original_entries=original_entries_list,
         actual_entries=actual_entries_list,
-        root_directory=root_directory,
     )
 
 

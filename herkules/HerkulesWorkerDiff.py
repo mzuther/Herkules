@@ -42,7 +42,6 @@
 # ----------------------------------------------------------------------------
 
 import operator
-import pathlib
 from typing import Any
 
 import herkules.HerkulesTypes as Types
@@ -52,7 +51,6 @@ class HerkulesWorkerDiff:
     def convert_to_dict_of_dicts(
         self,
         entries: Types.EntryList | Types.EntryListJSON,
-        root_directory: pathlib.Path,
     ) -> Types.DictOfEntries:
         sorted_entries = sorted(
             entries,
@@ -81,14 +79,15 @@ class HerkulesWorkerDiff:
     def check_list_of_entries(
         self,
         entries: Any,
+        # for testing only
         variable_name: str,
     ) -> None:
         # entries must exist
         if len(entries) < 1:
             raise ValueError(f'"{variable_name}" contains no entries')
 
-        # entries must contain metadata; this should catch most issues without
-        # impacting performance
+        # entries must contain metadata; this should catch most run-time
+        # issues without impacting performance
         entry = entries[0]
         contains_metadata = False
 
@@ -105,26 +104,23 @@ class HerkulesWorkerDiff:
         self,
         original_entries: Types.EntryList | Types.EntryListJSON,
         actual_entries: Types.EntryList | Types.EntryListJSON,
-        root_directory: str | pathlib.Path,
-    ) -> tuple[Types.DictOfEntries, Types.DictOfEntries]:
-        root_directory = pathlib.Path(
-            root_directory,
+    ) -> tuple[
+        Types.DictOfEntries,
+        Types.DictOfEntries,
+    ]:
+        self.check_list_of_entries(original_entries, 'original_entries')
+
+        original_entries_dict = self.convert_to_dict_of_dicts(
+            original_entries,
         )
 
-        self.check_list_of_entries(original_entries, 'original_entries')
         self.check_list_of_entries(actual_entries, 'actual_entries')
 
-        original_paths = self.convert_to_dict_of_dicts(
-            original_entries,
-            root_directory,
-        )
-
-        actual_paths = self.convert_to_dict_of_dicts(
+        actual_entries_dict = self.convert_to_dict_of_dicts(
             actual_entries,
-            root_directory,
         )
 
-        return original_paths, actual_paths
+        return original_entries_dict, actual_entries_dict
 
     def diff(
         self,
