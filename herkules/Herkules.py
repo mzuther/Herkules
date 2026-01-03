@@ -64,7 +64,7 @@ class Herkules:
     def find(
         self,
         root_directory: str | pathlib.Path,
-        directories_first: bool = True,
+        list_directories_first: bool = True,
         include_directories: bool = False,
         follow_symlinks: bool = False,
         selector: Types.Selector | None = None,
@@ -82,15 +82,15 @@ class Herkules:
 
         worker_find = HerkulesWorkerFind(
             selector=selector,
+            list_directories_first=list_directories_first,
+            include_directories=include_directories,
+            follow_symlinks=follow_symlinks,
+            call_stat=call_stat,
         )
 
         found_entries = worker_find.find_by_recursion(
             current_directory=root_directory,
-            directories_first=directories_first,
-            include_directories=include_directories,
-            follow_symlinks=follow_symlinks,
             modified_since=modified_since,
-            call_stat=call_stat,
         )
 
         if relative_to_root:
@@ -104,7 +104,7 @@ class Herkules:
     def find_paths_only(
         self,
         root_directory: str | pathlib.Path,
-        directories_first: bool = True,
+        list_directories_first: bool = True,
         include_directories: bool = False,
         follow_symlinks: bool = False,
         selector: Types.Selector | None = None,
@@ -113,7 +113,7 @@ class Herkules:
     ) -> Types.EntryListFlattened:
         found_entries = self.find(
             root_directory=root_directory,
-            directories_first=directories_first,
+            list_directories_first=list_directories_first,
             include_directories=include_directories,
             follow_symlinks=follow_symlinks,
             selector=selector,
@@ -153,7 +153,7 @@ class Herkules:
         self,
         original_entries: Types.EntryList | Types.EntryListJSON,
         root_directory: str | pathlib.Path,
-        directories_first: bool = True,
+        list_directories_first: bool = True,
         include_directories: bool = False,
         follow_symlinks: bool = False,
         selector: Types.Selector | None = None,
@@ -161,7 +161,7 @@ class Herkules:
     ) -> Types.DiffResult:
         actual_entries = self.find(
             root_directory=root_directory,
-            directories_first=directories_first,
+            list_directories_first=list_directories_first,
             include_directories=include_directories,
             follow_symlinks=follow_symlinks,
             selector=selector,
@@ -189,7 +189,7 @@ def herkules(
 
     return herkules.find_paths_only(
         root_directory=root_directory,
-        directories_first=directories_first,
+        list_directories_first=directories_first,
         include_directories=include_directories,
         follow_symlinks=follow_symlinks,
         selector=selector,
@@ -206,19 +206,18 @@ def herkules_with_metadata(
     selector: Types.Selector | None = None,
     modified_since: datetime.datetime | Types.ModificationTime = None,
     relative_to_root: bool = False,
-    call_stat: bool = True,
 ) -> Types.EntryList:
     herkules = Herkules()
 
     return herkules.find(
         root_directory=root_directory,
-        directories_first=directories_first,
+        list_directories_first=directories_first,
         include_directories=include_directories,
         follow_symlinks=follow_symlinks,
         selector=selector,
         modified_since=modified_since,
         relative_to_root=relative_to_root,
-        call_stat=call_stat,
+        call_stat=True,
     )
 
 
@@ -248,7 +247,7 @@ def herkules_diff_run(
     return herkules.find_and_diff(
         original_entries=original_entries,
         root_directory=root_directory,
-        directories_first=directories_first,
+        list_directories_first=directories_first,
         include_directories=include_directories,
         follow_symlinks=follow_symlinks,
         selector=selector,

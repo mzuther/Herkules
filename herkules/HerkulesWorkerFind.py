@@ -50,11 +50,26 @@ import herkules.HerkulesTypes as Types
 
 class HerkulesWorkerFind:
     selector: Types.Selector
+    list_directories_first: bool
+    include_directories: bool
+    follow_symlinks: bool
+
+    call_stat: bool
 
     def __init__(
         self,
         selector: Types.Selector | None,
+        list_directories_first: bool = True,
+        include_directories: bool = False,
+        follow_symlinks: bool = False,
+        call_stat: bool = True,
     ) -> None:
+        self.list_directories_first = list_directories_first
+        self.include_directories = include_directories
+        self.follow_symlinks = follow_symlinks
+
+        self.call_stat = call_stat
+
         if selector is None:
             selector = {}
 
@@ -89,11 +104,10 @@ class HerkulesWorkerFind:
         self,
         current_path: pathlib.Path,
         dir_entry: os.DirEntry[str],
-        follow_symlinks: bool,
         modified_since: Types.ModificationTime,
         modification_time_in_seconds: Types.ModificationTime,
     ) -> bool:
-        if not dir_entry.is_dir(follow_symlinks=follow_symlinks):
+        if not dir_entry.is_dir(follow_symlinks=self.follow_symlinks):
             return False
 
         # exclude directories
@@ -109,11 +123,10 @@ class HerkulesWorkerFind:
         self,
         current_path: pathlib.Path,
         dir_entry: os.DirEntry[str],
-        follow_symlinks: bool,
         modified_since: Types.ModificationTime,
         modification_time_in_seconds: Types.ModificationTime,
     ) -> bool:
-        if not dir_entry.is_file(follow_symlinks=follow_symlinks):
+        if not dir_entry.is_file(follow_symlinks=self.follow_symlinks):
             return False
 
         # exclude files
@@ -154,17 +167,11 @@ class HerkulesWorkerFind:
     def find_by_recursion(
         self,
         current_directory: pathlib.Path,
-        directories_first: bool,
-        include_directories: bool,
-        follow_symlinks: bool,
         modified_since: Types.ModificationTime,
-        call_stat: bool,
     ) -> Types.EntryList:
         directories, files = self.process_directory(
             directory_path=current_directory,
-            follow_symlinks=follow_symlinks,
             modified_since=modified_since,
-            call_stat=call_stat,
         )
 
         # sort results
@@ -174,26 +181,22 @@ class HerkulesWorkerFind:
         # collect results
         found_entries = []
 
-        if not directories_first:
+        if not self.list_directories_first:
             found_entries.extend(files)
 
         # recurse
         for directory in directories:
             deep_found_entries = self.find_by_recursion(
                 current_directory=directory.path,
-                directories_first=directories_first,
-                include_directories=include_directories,
-                follow_symlinks=follow_symlinks,
                 modified_since=modified_since,
-                call_stat=call_stat,
             )
 
-            if include_directories:
+            if self.include_directories:
                 found_entries.append(directory)
 
             found_entries.extend(deep_found_entries)
 
-        if directories_first:
+        if self.list_directories_first:
             found_entries.extend(files)
 
         return found_entries
@@ -201,9 +204,7 @@ class HerkulesWorkerFind:
     def process_directory(
         self,
         directory_path: pathlib.Path,
-        follow_symlinks: bool,
         modified_since: Types.ModificationTime,
-        call_stat: bool,
     ) -> tuple[Types.EntryList, Types.EntryList]:
         directories: Types.EntryList = []
         files: Types.EntryList = []
@@ -214,7 +215,7 @@ class HerkulesWorkerFind:
             current_path = directory_path / dir_entry.name
 
             # "stat" is costly
-            if call_stat or modified_since:
+            if self.call_stat or modified_since:
                 # only include paths modified after a given date; get
                 # timestamp of linked path, not of symlink
                 stat_result = dir_entry.stat(follow_symlinks=True)
@@ -230,7 +231,6 @@ class HerkulesWorkerFind:
             if self.is_directory_included(
                 current_path=current_path,
                 dir_entry=dir_entry,
-                follow_symlinks=follow_symlinks,
                 modified_since=modified_since,
                 modification_time_in_seconds=modification_time_in_seconds,
             ):
@@ -244,7 +244,6 @@ class HerkulesWorkerFind:
             elif self.is_file_included(
                 current_path=current_path,
                 dir_entry=dir_entry,
-                follow_symlinks=follow_symlinks,
                 modified_since=modified_since,
                 modification_time_in_seconds=modification_time_in_seconds,
             ):
