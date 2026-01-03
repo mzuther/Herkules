@@ -72,32 +72,19 @@ class Herkules:
         relative_to_root: bool = False,
         call_stat: bool = True,
     ) -> Types.EntryList:
-        root_directory = pathlib.Path(
-            root_directory,
-        )
-
-        # convert to UNIX timestamp
-        if isinstance(modified_since, datetime.datetime):
-            modified_since = modified_since.timestamp()
-
         worker_find = HerkulesWorkerFind(
             selector=selector,
             list_directories_first=list_directories_first,
             include_directories=include_directories,
             follow_symlinks=follow_symlinks,
+            relative_to_root=relative_to_root,
             call_stat=call_stat,
         )
 
-        found_entries = worker_find.find_by_recursion(
-            current_directory=root_directory,
+        found_entries = worker_find.find(
+            root_directory=root_directory,
             modified_since=modified_since,
         )
-
-        if relative_to_root:
-            found_entries = worker_find.convert_relative_to_root(
-                found_entries,
-                root_directory,
-            )
 
         return found_entries
 

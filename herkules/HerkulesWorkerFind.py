@@ -41,6 +41,7 @@
 #
 # ----------------------------------------------------------------------------
 
+import datetime
 import operator
 import os
 import pathlib
@@ -53,6 +54,7 @@ class HerkulesWorkerFind:
     list_directories_first: bool
     include_directories: bool
     follow_symlinks: bool
+    relative_to_root: bool
 
     call_stat: bool
 
@@ -62,11 +64,13 @@ class HerkulesWorkerFind:
         list_directories_first: bool = True,
         include_directories: bool = False,
         follow_symlinks: bool = False,
+        relative_to_root: bool = False,
         call_stat: bool = True,
     ) -> None:
         self.list_directories_first = list_directories_first
         self.include_directories = include_directories
         self.follow_symlinks = follow_symlinks
+        self.relative_to_root = relative_to_root
 
         self.call_stat = call_stat
 
@@ -163,6 +167,32 @@ class HerkulesWorkerFind:
             entries_relative.append(entry)
 
         return entries_relative
+
+    def find(
+        self,
+        root_directory: str | pathlib.Path,
+        modified_since: datetime.datetime | Types.ModificationTime,
+    ) -> Types.EntryList:
+        root_directory = pathlib.Path(
+            root_directory,
+        )
+
+        # convert to UNIX timestamp
+        if isinstance(modified_since, datetime.datetime):
+            modified_since = modified_since.timestamp()
+
+        found_entries = self.find_by_recursion(
+            current_directory=root_directory,
+            modified_since=modified_since,
+        )
+
+        if self.relative_to_root:
+            found_entries = self.convert_relative_to_root(
+                found_entries,
+                root_directory,
+            )
+
+        return found_entries
 
     def find_by_recursion(
         self,
