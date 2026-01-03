@@ -12,9 +12,18 @@ happens._
 
 ## Unreleased
 
+<!--- ---------------------------------------------------------------------- -->
+
+## 1.3.0 - 2026-01-03
+
 ### Changed
 
-- remove unused parameter `root_directory` from `herkules_diff()`
+- heavily refactor code and tests
+- change some function and parameter names
+
+### Fixed
+
+- ensure that `test_difference_modify_file()` always passes
 
 <!--- ---------------------------------------------------------------------- -->
 
