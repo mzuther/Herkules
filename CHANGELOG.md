@@ -19,6 +19,7 @@ happens._
 ### Changed
 
 - heavily refactor code and tests
+- change output types
 - change some function and parameter names
 
 ### Fixed
