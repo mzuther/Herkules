@@ -53,14 +53,6 @@ __version__ = '1.2.2'
 
 
 class Herkules:
-    def flatten_paths(
-        self,
-        entries: Types.EntryList,
-    ) -> Types.EntryListFlattened:
-        flattened_entries = [entry.path for entry in entries]
-
-        return flattened_entries
-
     def find(
         self,
         root_directory: str | pathlib.Path,
@@ -70,7 +62,6 @@ class Herkules:
         selector: Types.Selector | None = None,
         modified_since: datetime.datetime | Types.ModificationTime = None,
         relative_to_root: bool = False,
-        call_stat: bool = True,
     ) -> Types.EntryList:
         worker_find = HerkulesWorkerFind(
             selector=selector,
@@ -78,7 +69,7 @@ class Herkules:
             include_directories=include_directories,
             follow_symlinks=follow_symlinks,
             relative_to_root=relative_to_root,
-            call_stat=call_stat,
+            call_stat=True,
         )
 
         found_entries = worker_find.find(
@@ -98,18 +89,21 @@ class Herkules:
         modified_since: datetime.datetime | Types.ModificationTime = None,
         relative_to_root: bool = False,
     ) -> Types.EntryListFlattened:
-        found_entries = self.find(
-            root_directory=root_directory,
+        worker_find = HerkulesWorkerFind(
+            selector=selector,
             list_directories_first=list_directories_first,
             include_directories=include_directories,
             follow_symlinks=follow_symlinks,
-            selector=selector,
-            modified_since=modified_since,
             relative_to_root=relative_to_root,
             call_stat=False,
         )
 
-        flattened_entries = self.flatten_paths(
+        found_entries = worker_find.find(
+            root_directory=root_directory,
+            modified_since=modified_since,
+        )
+
+        flattened_entries = worker_find.flatten_paths(
             found_entries,
         )
 
@@ -199,7 +193,6 @@ def herkules_with_metadata(
         selector=selector,
         modified_since=modified_since,
         relative_to_root=relative_to_root,
-        call_stat=True,
     )
 
 

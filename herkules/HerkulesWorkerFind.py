@@ -168,6 +168,14 @@ class HerkulesWorkerFind:
 
         return entries_relative
 
+    @staticmethod
+    def flatten_paths(
+        entries: Types.EntryList,
+    ) -> Types.EntryListFlattened:
+        flattened_entries = [entry.path for entry in entries]
+
+        return flattened_entries
+
     def find(
         self,
         root_directory: str | pathlib.Path,
