@@ -23,15 +23,8 @@ requires-python = ">=3.10,<4.0"
 readme = "README.md"
 license = "BSD-3-Clause"
 license-files = ["LICENSE.md"]
+
 dependencies = []
-
-[project.scripts]
-herkules = "herkules.Herkules:main_cli"
-
-[project.urls]
-Homepage = "https://github.com/mzuther/Herkules"
-Repository = "https://github.com/mzuther/Herkules.git"
-Changelog = "https://github.com/mzuther/Herkules/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
@@ -46,6 +39,14 @@ dev = [
 [build-system]
 requires = ["hatchling >= 1.27"]
 build-backend = "hatchling.build"
+
+[project.scripts]
+herkules = "herkules.Herkules:main_cli"
+
+[project.urls]
+Homepage = "https://github.com/mzuther/Herkules"
+Repository = "https://github.com/mzuther/Herkules.git"
+Changelog = "https://github.com/mzuther/Herkules/blob/main/CHANGELOG.md"
 
 [tool.hatch.version]
 path = "herkules/Herkules.py"
