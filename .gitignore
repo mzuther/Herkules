@@ -18,7 +18,8 @@ wheels/
 
 # VS Code
 .vscode/
+*.code-workspace
 
-# Stempelwerk
+# this repo
 *_Debug.txt
 .last_run
