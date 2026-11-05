@@ -49,7 +49,7 @@ import herkules.HerkulesTypes as Types
 from herkules.HerkulesWorkerDiff import HerkulesWorkerDiff
 from herkules.HerkulesWorkerFind import HerkulesWorkerFind
 
-__version__ = '1.3.0'
+__version__ = '1.3.1'
 
 
 class Herkules:
