@@ -16,6 +16,10 @@ happens._
 
 ## 1.3.1 - 2026-11-05
 
+### Changed
+
+- update dependencies
+
 ### Fixed
 
 - fix security vulnerability (`pytest`)
