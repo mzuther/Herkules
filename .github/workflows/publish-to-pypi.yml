@@ -17,10 +17,16 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Upgrade pip
+        run: |
+          python3 -m pip install \
+            --upgrade \
+            pip
+
       - name: Install pypa/build
-        run: >-
-          python3 -m pip install
-            --user
+        run: |
+          python3 -m pip install \
+            --user \
             build
 
       - name: Build wheel and source distribution
@@ -32,7 +38,7 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-  # publishes new tags on "main" branch
+  # publishes new tags
   publish-to-pypi:
     name: Publish to PyPI
     if: startsWith(github.ref, 'refs/tags/')
@@ -58,6 +64,7 @@ jobs:
   # publishes new commits on "main" branch
   publish-to-testpypi:
     name: Publish to TestPyPI
+    if: github.ref == 'refs/heads/main'
     needs:
       - build
     runs-on: ubuntu-latest
