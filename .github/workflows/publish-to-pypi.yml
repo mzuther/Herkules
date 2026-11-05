@@ -17,10 +17,16 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Upgrade pip
+        run: |
+          python3 -m pip install \
+            --upgrade \
+            pip
+
       - name: Install pypa/build
-        run: >-
-          python3 -m pip install
-            --user
+        run: |
+          python3 -m pip install \
+            --user \
             build
 
       - name: Build wheel and source distribution
