@@ -37,14 +37,14 @@ run
 
 ```bash
 # bash
-./script/bootstrap
+./scripts/bootstrap
 ```
 
 or
 
 ```ps1
 # PowerShell
-.\script\bootstrap.ps1
+.\scripts\bootstrap.ps1
 ```
 
 For a very simple "no-options" experience, install from PyPI and execute the
